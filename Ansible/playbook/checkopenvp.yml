@@ -1,0 +1,20 @@
+---
+- name: Check if openvpn is running
+  hosts: "{{ my_hosts | d([]) }}"
+  gather_facts: false
+  become: yes
+  tasks:
+    - name: Get PIDs of openvpn
+      command: pidof openvpn
+      register: openvpn_pid
+      ignore_errors: yes  # To handle cases where `pidof` might fail
+
+    - name: Report if openvpn is running
+      debug:
+        msg: "openvpn is running with PIDs: {{ openvpn_pid.stdout }}"
+      when: openvpn_pid.stdout | length > 0
+
+    - name: Report if openvpn is not running
+      debug:
+        msg: "openvpn is not running"
+      when: openvpn_pid.stdout | length == 0

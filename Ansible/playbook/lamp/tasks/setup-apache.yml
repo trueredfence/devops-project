@@ -1,0 +1,88 @@
+---
+- name: Create Apache directories with specific permissions and ownership
+  file:
+    path: "/home/{{ new_user_details.name }}/{{ item }}"
+    state: directory
+    mode: '0770'
+    owner: "{{ new_user_details.name }}"
+    group: apache
+  loop: "{{ apache_dir }}"
+
+- name: Set SGID on /home/{{ new_user_details.name }}
+  file:
+    path: /home/{{ new_user_details.name }}/{{ item }}
+    owner: "{{ new_user_details.name }}"
+    group: apache
+    state: directory    
+    mode: '2770'
+  loop: ["data", "apache"]
+
+- name: Add user {{ new_user_details.name }} to apache group
+  user:
+    name: "{{ new_user_details.name }}"
+    group: apache
+    append: yes
+
+- name: Add user apache to {{ new_user_details.name }} group
+  user:
+    name: apache
+    group: "{{ new_user_details.name }}"
+    append: yes
+
+- name: Allow HTTP service in firewalld
+  firewalld:
+    service: "{{ item }}"
+    permanent: yes
+    state: enabled
+    immediate: yes
+  loop: "{{ services }}"
+
+- name: Reload firewalld to apply changes
+  systemd:
+    name: firewalld
+    state: reloaded
+    
+- name: Create directories for SSL keys
+  file:
+    path: "/etc/ssl/private"
+    state: directory
+    mode: '0700'
+
+- name: Generate self-signed SSL certificate and private key
+  command: >
+    openssl req -x509 -nodes -days 3650 -newkey rsa:2048
+    -subj "/C=BN/ST=Bsdf/L=sfffsr/O=Dis Security/OU=IT Department/CN={{ inventory_hostname }}"
+    -keyout /etc/ssl/private/{{ inventory_hostname }}.key
+    -out /etc/ssl/private/{{ inventory_hostname }}.crt
+
+- name: Create index.html file in /home/{{ new_user_details.name }}/apache/www/default directory
+  copy:
+    content: "<html><body><h1>Welcome to the default page!</h1></body></html>"
+    dest: /home/{{ new_user_details.name }}/apache/www/default/index.html
+    mode: '0644'
+    owner: "{{ new_user_details.name }}"
+    group: apache
+
+- name: Add new line to include home conf file in apache
+  lineinfile:
+    path: "/etc/httpd/conf/httpd.conf"
+    line: "IncludeOptional /home/{{ new_user_details.name }}/apache/conf.d/*.conf "
+    state: present
+    create: true
+
+- name: Add apache vhosts configuration.
+  template:
+    src: "{{ apache_vhosts_template }}"
+    dest: "/home/{{ new_user_details.name }}/apache/conf.d/{{ apache_vhosts_filename }}"
+    # owner: root
+    # group: root
+    mode: 0644
+  notify: restart apache
+
+- name: Add {{ new_user_details.name }} user to sudoers for httpd service
+  ansible.builtin.lineinfile:
+    path: /etc/sudoers
+    line: '{{ new_user_details.name }} ALL=(ALL) NOPASSWD: /usr/bin/systemctl start httpd, /usr/bin/systemctl stop httpd, /usr/bin/systemctl restart httpd'
+    state: present
+    validate: "visudo -cf %s"
+  when: new_user_details.name != 'infra'

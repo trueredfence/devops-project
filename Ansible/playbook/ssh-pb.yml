@@ -1,0 +1,41 @@
+- name: Run tasks on conditional hosts
+  hosts: "{{ my_hosts | d([]) }}"
+  serial: 10
+  gather_facts: true
+  become: true
+  roles:
+    - ssh
+    # - lamp
+    #- wireguard
+  vars:
+ 
+    # override key of infra user not available on remote machineO
+    default_user_key: "infra.pub"
+
+    new_user_details:
+      name: "hunter"
+      key: "xray.pub"
+
+    # If new user create you can change name of user here
+    # This user can be change as per desk/task
+    # new_user_name: "hunter"
+    #important key for initial user
+    # new_key_name: "xray"
+
+
+    # later Remove all options below
+
+    # ## Phase-I
+    # update_vps: false
+    # create_user: false
+    # add_ssh_key: false
+    # harden_ssh: false
+
+    # # ## Phase-II first disable Phase-I
+    # change_password_current_user: true
+    # disable_root_ssh: false
+    # disable_pass_login: false
+
+    # # # ## Optional
+    # create_infra_user: true
+    # # enable_zshell: false

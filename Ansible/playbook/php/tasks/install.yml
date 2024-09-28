@@ -1,0 +1,6 @@
+---
+- name: Install PHP 8.2 modules
+  apt:
+    name: "{{ php82_modules }}"
+    update_cache: yes
+    state: present

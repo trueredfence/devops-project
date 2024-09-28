@@ -1,0 +1,69 @@
+- name: Create document root for {{ domain }}
+  file:
+    path: "/var/www/{{ domain }}" #create this folder (directory)
+    state: directory
+    owner: www-data
+    group: www-data
+    mode: 0644
+
+# Configure Virtualhost
+- name: Set up virtualHost for {{ domain }}
+  template:
+    src: "templates/{{apache_vhosts_template}}"
+    dest: "/etc/apache2/sites-available/{{ domain }}.conf"
+
+# Enable site
+- name: Enable site {{ domain_name }}
+  command: a2ensite {{ domain }}.conf
+
+# Firewall
+- name: "UFW firewall allow HTTP on port {{ http_port}} & {{ https_port }}"
+  ufw:
+    rule: allow
+    port: "{{ item }}"
+    proto: tcp
+  loop:
+    - "{{ apache_port }}"
+    - "{{ apache_port_ssl }}"
+
+- name: Ensure Apache has selected state and enabled on boot.
+  service:
+    name: "apache2"
+    state: "started"
+    enabled: true
+#configure PHP
+
+# Configure Phpmyadmin
+- name: Include phpMyAdmin configuration in Apache
+  lineinfile:
+    dest: /etc/apache2/apache2.conf
+    line: Include /etc/phpmyadmin/apache.conf
+
+# MySQL Configuration
+- name: Sets the root password
+  mysql_user:
+    name: root
+    password: "{{ mysql_root_password }}"
+    login_unix_socket: /var/run/mysqld/mysqld.sock
+  ignore_errors: yes
+  when: set_root_password | bool
+
+- name: Removes all anonymous user accounts
+  mysql_user:
+    name: ""
+    host_all: yes
+    state: absent
+    login_user: root
+    login_password: "{{ mysql_root_password }}"
+  ignore_errors: yes
+  when: remove_anonymous_user | bool
+
+- name: Removes the MySQL test database
+  mysql_db:
+    name: test
+    state: absent
+    login_user: root
+    login_password: "{{ mysql_root_password }}"
+  ignore_errors: yes
+  when: remove_test_db | bool
+  notify: restart-mysql

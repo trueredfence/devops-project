@@ -1,0 +1,45 @@
+---
+- name: Check for specific lines in a file
+  hosts: "{{ my_hosts | d([]) }}"
+  # serial: 20
+  gather_facts: true
+  become: yes
+  vars:
+    change_config_file: false
+    file_path: "/etc/ssh/sshd_config"
+    lines_to_check:
+      - line: PasswordAuthentication no
+        regexp: ^PasswordAuthentication
+      - line: PermitRootLogin no
+        regexp: ^PermitRootLogin
+
+  tasks:
+    - name: Check for line in file
+      ansible.builtin.lineinfile:
+        line: "{{ item.line }}"
+        path: "{{ file_path }}"
+        state: present
+      check_mode: true
+      register: line_check
+      loop: "{{ lines_to_check }}"
+      when: not change_config_file
+
+    - name: Print message if the line was not found
+      ansible.builtin.debug:
+        msg: "The line '{{ item.item }}' was not found in {{ file_path }}."
+      loop: "{{ line_check.results }}"
+      when: not item.changed and not change_config_file
+
+    - name: Change SSH daemon configuration
+      lineinfile:
+        line: "{{ item.line }}"
+        regexp: "{{ item.regexp }}"
+        path: "{{ file_path }}"
+      loop: "{{ lines_to_check }}"
+      when: change_config_file
+
+    - name: restart sshd
+      systemd:
+        name: sshd
+        state: restarted
+      when: change_config_file

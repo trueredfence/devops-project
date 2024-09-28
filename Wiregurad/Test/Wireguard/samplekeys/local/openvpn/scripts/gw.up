@@ -1,0 +1,52 @@
+#!/bin/bash
+
+[ -d "/tmp/vpn" ] && echo "exists" || /bin/mkdir /tmp/vpn
+[ -d "/tmp/vpn_log" ] && echo "dir exists" || /bin/mkdir /tmp/vpn_log
+#/bin/su -c 'sh -s' <<EOF 
+
+if [ "$1" = "tun1" ]
+then 
+sleep 20
+fi 
+#filecheck="/tmp/vpn/$1.status"
+
+#if [ ! -e "$filecheck" ]
+#then
+#/bin/touch $filecheck
+#fi
+
+#/bin/echo "0" > $filecheck
+
+ping_ip_tun="8.8.8.8"
+
+check_device=`/bin/grep -o $1 /etc/openvpn/foolsm/openvpn.conf | /bin/sed -n '1p'`
+
+if [ "$check_device" = "$1" ]
+then
+echo "foolsm already configured"
+else
+echo  "connection {
+	name=$1
+	checkip=$ping_ip_tun
+	device=$1
+	sourceip=$4
+	ttl=64
+}" >> /etc/openvpn/foolsm/openvpn.conf
+fi
+get_pid=`/bin/ps aux | /bin/grep /etc/openvpn/foolsm/lsm.conf | /usr/bin/awk '{print$2}' | /bin/sed -n '1p'`
+echo "pid of foolsm for openvpn is $get_pid"
+/bin/kill $get_pid
+/usr/sbin/foolsm  -c /etc/openvpn/foolsm/lsm.conf >> /var/log/openvpn_lsm
+
+filecheck="/tmp/vpn/$1.status"
+if [ ! -e "$filecheck" ]
+then
+/bin/touch $filecheck
+fi
+/bin/echo "0" > $filecheck
+
+/bin/bash /opt/gateway/traffic_status.sh change_status $1 green
+
+/bin/bash /etc/openvpn/foolsm/chg_vpn_route.sh
+
+#EOF

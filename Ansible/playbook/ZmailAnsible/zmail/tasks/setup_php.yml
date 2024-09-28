@@ -1,0 +1,51 @@
+---
+- name: Check if PHP is installed.
+  command: which php
+  changed_when: false
+  failed_when: false
+  register: php_installed
+
+- name: Add PHP PPA repository
+  apt_repository:
+    repo: "ppa:ondrej/php"
+    state: present
+    update_cache: yes
+  when: php_installed.rc != 0
+
+- name: Install PHP 8.2 modules
+  apt:
+    name: "{{ php82_modules }}"
+    update_cache: yes
+    state: present
+  when: php_installed.rc != 0
+  notify: restart-apache
+
+- name: Install PHP Apache Moudule
+  apt:
+    name: libapache2-mod-php8.2
+    update_cache: yes
+    state: present
+  when: not enable_fpm
+  notify: restart-apache
+
+# FPM Configure
+- name: Enable php for apahce
+  file:
+    src: "/etc/apache2/mods-available/{{ php_version }}.load"
+    dest: "/etc/apache2/mods-enabled/{{ php_version }}.load"
+    state: link
+    mode: 0644
+  when: not enable_fpm
+  notify: restart-apache
+
+# apache FPM Enable
+- name: Enable mod_proxy_fcgi.
+  file:
+    src: "/etc/apache2/mods-available/{{ item }}"
+    dest: "/etc/apache2/mods-enabled/{{ item }}"
+    state: link
+    mode: 0644
+  with_items:
+    - proxy.load
+    - proxy_fcgi.load
+  when: enable_fpm | bool

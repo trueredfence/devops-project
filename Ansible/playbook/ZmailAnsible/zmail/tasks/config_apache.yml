@@ -1,0 +1,48 @@
+---
+- name: Add apache vhosts configuration.
+  template:
+    src: "{{ vhost.template }}"
+    dest: "/etc/apache2/sites-available/{{ item.filename }}.conf"
+    owner: root
+    group: root
+    mode: 0644
+  with_items: "{{ apache_vhost }}"
+  notify: restart-apache
+
+# Enable site
+- name: Enable sites
+  command: a2ensite {{ item.filename }}.conf
+  with_items: "{{ apache_vhost }}"
+  notify: restart-apache
+
+# Enable site link
+# - name: Add vhost symlink in sites-enabled.
+#   file:
+#     src: "/etc/apache2/sites-available/{{ item.filename }}.conf"
+#     dest: "/etc/apache2/sites-enabled/{{ item.filename }}.conf"
+#     state: link
+#     mode: 0644
+#   with_items:
+#     "{{ apache_vhost }}"
+#     #force: "{{ ansible_check_mode }}"
+#   notify: restart-apache
+
+# Create root documents
+- name: Create document root
+  file:
+    path: "{{ item.documentroot }}" #create this folder (directory)
+    state: directory
+    owner: www-data
+    group: www-data
+    mode: 0644
+  with_items: "{{ apache_vhost }}"
+  notify: restart-apache
+
+- name: Move Web-Application files to remote
+  synchronize:
+    src: "files/app/{{ item.filename}}/" #Contains all directory
+    dest: "{{ item.documentroot }}"
+    delete: yes
+  ignore_errors: yes
+  with_items: "{{ apache_vhost }}"
+  remote_user: root

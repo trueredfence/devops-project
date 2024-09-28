@@ -1,0 +1,44 @@
+---
+- name: Chagne password of selected user
+  hosts: "{{ my_hosts | d([]) }}"
+  serial: 20
+  gather_facts: true
+  become: yes
+  vars:
+    password_output_file: "./password.csv"
+    change_passkey: 
+      change: 'password' # passwor or key
+      username: 'root'
+  tasks:
+    - name: Generate random password for {{ change_passkey.username }}
+      set_fact:
+        random_password: "{{ lookup('community.general.random_string', length=16, min_lower=1, min_upper=2, min_numeric=3, min_special=4, override_special='-_+!#$()[]') }}"
+      when: change_passkey.change == 'password'
+
+    - name: Display password for {{ change_passkey.username }}
+      debug:
+        msg: "Host: {{ inventory_hostname }} | User: {{ change_passkey.username }} | Password: {{ random_password }}"
+      when: change_passkey.change == 'password'
+
+    - name: Add host details to list
+      set_fact:
+        user_details: "{{ user_details | default([]) + [{'host': inventory_hostname, 'user': change_passkey.username, 'port': ansible_port , 'password': random_password}] }}"
+      when: change_passkey.change == 'password'
+
+    - name: Change {{ change_passkey.username }} password
+      user:
+        name: "{{ change_passkey.username }}"
+        password: "{{ random_password | password_hash('sha512') }}"
+        state: present
+      when: change_passkey.change == 'password'
+
+    - name: Save password details for {{ change_passkey.username }}
+      local_action:
+        module: lineinfile
+        path: "{{ password_output_file }}"
+        line: "{{ item.host }},{{ item.user }},{{ item.password }}"
+        create: yes
+      delegate_to: localhost
+      with_items: "{{ user_details }}"
+      ignore_errors: true
+      when: change_passkey.change == 'password'

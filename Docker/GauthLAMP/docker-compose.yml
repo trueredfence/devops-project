@@ -1,0 +1,57 @@
+version: "3.9"
+services: 
+
+  database:
+    image: mysql
+    container_name: "GAuth-DB"
+    restart: "always"
+    ports:
+      - "127.0.0.1:3306:3306"
+    volumes:
+      - gauth_db:/var/lib/mysql
+      - gauth_dblog:/var/log/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}  
+      MYSQL_DATABASE: ${MYSQL_DATABASE} 
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+
+  website:
+    build:
+      context: .
+      dockerfile: "./Dockerfile.webserver"
+    container_name: "GAuth-Webserver"
+    restart: "always"
+    ports:
+      - "80:80"  # Expose Apache on port 8080
+      - "443:443"
+    volumes:
+      - ./src:/var/www/html  # Mount your PHP files to the container
+      - gauth_weblog:/var/log/apache2  # External volume for Apache logs
+    depends_on:
+      - database  # Start MySQL before Apache
+    environment:
+      - MYSQL_HOST=database
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
+
+  phpmyadmin:
+    image: phpmyadmin
+    container_name: "GAuth-PMA"
+    restart: "always"
+    ports:
+      - "8080:80"
+    environment:
+      PMA_HOST: database
+      PMA_PORT: 3306
+      UPLOAD_LIMIT: 512M
+      MEMORY_LIMIT: 512M
+
+volumes:
+  gauth_db:
+    external: true
+  gauth_dblog:
+    external: true
+  gauth_weblog:
+    external: true

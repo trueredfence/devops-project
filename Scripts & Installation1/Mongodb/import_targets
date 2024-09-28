@@ -1,0 +1,69 @@
+db.createCollection( "import_targets" , { 
+   validator: { $jsonSchema: { 
+      bsonType: "object",      
+      required: [ "t_id" ], 
+      properties: {
+         _id : {
+              bsonType: "objectId" }, 
+         t_id: { 
+            bsonType: "string",
+            description: "Machine mobile email other" },
+         source: { 
+            bsonType: "string",
+            description: "String Value of Source Name" },
+         t_type: { 
+            enum: [ "1", "2"],
+            description: "1 email 2 Agent" },                   
+         i_dtg: { 
+            bsonType: "date", 
+            description: "When infected" },
+         i_by: { 
+            bsonType: "string",
+            description: "Who push/insert this target in DB" },  
+         r_dtg: { 
+            bsonType: "date", 
+            description: "When reccee" },
+         r_by: { 
+            bsonType: "string",
+            description: "Who reccee this target in DB" }, 
+         a_dtg: { 
+            bsonType: "date", 
+            description: "When accept/reject" },
+         a_by: { 
+            bsonType: "string",
+            description: "Who accept/reject taret" }, 
+         rating: { 
+            enum: [ "1", "2", "3", "4", "5" ],
+            description: "rating of target" },                 
+         country: { 
+            bsonType: "string", 
+            description: "Country belongs to this target" },
+         keywords: { 
+            bsonType: "array",
+            description: "Tags for this target" },     
+         events: { 
+            bsonType: "array",
+            description: "All events" }, 
+         i_remarks: { 
+            bsonType: "string", 
+            description: "Initial Remarks by uploader/reccee" },
+         stage: { 
+            enum: [ "1", null ],
+            description: "null reccee, 1 for approval"
+          } 
+      }
+   }
+}});
+
+
+
+db.import_targets.insert({
+  t_id: "abc@gmail.com",
+  source: "CRC",
+  name: "name",
+  type: "1",
+  i_dtg: new Date('2021-01-10'),
+  i_by: "tps",
+  country:"pakistan",
+  events: ["added by tps"]
+})

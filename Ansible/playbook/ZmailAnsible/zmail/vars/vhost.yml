@@ -1,0 +1,14 @@
+---
+# vars file for zmail
+apache_vhost:
+  - servername: zmail.bytesec.co.in
+    documentroot: /var/www/html/zmail # root directory
+    filename: zmail # conf file name
+    serveralias: 192.168.56.114
+    template: vhosts.conf.j2
+    #   For SSL Only
+    is_ssl: false
+    #   certificate_file: "/path/to/certificate.crt",
+    #   certificate_key_file: "/path/to/certificate.key",
+    #   # Optional.
+    #   certificate_chain_file: "/path/to/certificate_chain.crt"

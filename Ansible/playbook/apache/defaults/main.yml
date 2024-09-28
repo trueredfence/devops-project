@@ -1,0 +1,7 @@
+---
+# defaults file for apache
+ssl: False
+self_signed: False
+letsencrypt: False
+http_port: 80
+https_port: 443

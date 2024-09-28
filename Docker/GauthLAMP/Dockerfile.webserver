@@ -1,0 +1,31 @@
+FROM php:8.3-apache
+
+# Set non-interactive frontend for apt-get
+ARG DEBIAN_FRONTEND=noninteractive
+
+# Update, install utilities, and remove unnecessary files
+RUN apt-get update --fix-missing && \
+    apt-get -y upgrade && \
+    apt-get install -y --no-install-recommends apt-utils build-essential && \
+    rm -rf /var/lib/apt/lists/*
+
+# Install common PHP extensions including PDO_MySQL and others
+RUN apt-get update && \
+    apt-get install -y libpng-dev libjpeg-dev libfreetype6-dev libzip-dev zip && \
+    docker-php-ext-configure gd --with-freetype --with-jpeg && \
+    docker-php-ext-install gd mysqli pdo pdo_mysql zip && \
+    docker-php-ext-enable gd mysqli pdo pdo_mysql && \
+    rm -rf /var/lib/apt/lists/*  # Clean up after installation
+
+# Expose HTTP and HTTPS ports
+EXPOSE 80
+EXPOSE 443
+
+# Ensure an SSL directory exists
+RUN mkdir -p /etc/apache2/ssl
+
+# Enable SSL and Apache rewrite modules
+RUN a2enmod ssl rewrite headers
+
+# Clean up unnecessary files in the src directory
+RUN rm -rf /usr/src/*

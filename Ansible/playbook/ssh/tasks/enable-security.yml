@@ -1,0 +1,50 @@
+---
+# Security service like firewall and selinux for Centos7 machines only
+- name: Ensure Firewall has selected state and enabled on boot.
+  service:
+    name: "firewalld"
+    state: "started"
+    enabled: true
+
+- name: Ensure specific ports are allowed in firewalld
+  firewalld:
+    port: "{{ item }}"
+    permanent: true
+    state: enabled
+    immediate: true
+  loop:
+    - "1179/tcp"
+    - "7119/tcp"
+    - "22/tcp"
+
+- name: Allow SSH service in firewalld
+  firewalld:
+    service: "{{ item }}"
+    permanent: yes
+    state: enabled
+    immediate: yes
+  loop: 
+    - "ssh"
+
+- name: Reload firewalld to apply changes
+  systemd:
+    name: firewalld
+    state: reloaded
+    
+# - name: Ensure SELinux is set to enforcing mode
+#   selinux:
+#     policy: targeted
+#     state: enforcing
+
+# - name: Ensure SELinux configuration file is set to enforcing
+#   lineinfile:
+#     path: /etc/selinux/config
+#     regexp: '^SELINUX='
+#     line: 'SELINUX=enforcing'
+#     state: present
+
+# - name: Reboot the server to apply SELinux changes
+#   reboot:
+#     msg: "Rebooting to apply SELinux settings"
+#     reboot_timeout: 180
+#   when: ansible_selinux.status != "enabled"

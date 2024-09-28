@@ -1,0 +1,82 @@
+LoadModule ssl_module modules/mod_ssl.so
+LoadModule headers_module modules/mod_headers.so
+
+
+serverTokens Prod
+ServerSignature Off
+TraceEnable Off
+
+# Additional Header settings (adjust as needed)
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-XSS-Protection "1; mode=block"
+    Header always set X-Frame-Options "SAMEORIGIN"
+</IfModule>
+SSLCompression off
+SSLProtocol all -SSLv3 -TLSv1 -TLSv1.1
+SSLCipherSuite ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384
+SSLHonorCipherOrder on
+
+# Additional HTTPS settings (adjust as needed)
+#SSLProtocol all -SSLv2 -SSLv3
+#SSLCipherSuite HIGH:!aNULL:!MD5:!3DES:!CAMELLIA:!AES128
+# Already Listen on port 443
+#Listen 443
+
+<VirtualHost *:443>
+    SSLEngine on
+    SSLCertificateFile /etc/ssl/private/{{ inventory_hostname }}.crt
+    SSLCertificateKeyFile /etc/ssl/private/{{ inventory_hostname }}.key
+    ServerName {{ inventory_hostname }}
+    ServerAdmin webmaster@localhost
+    DocumentRoot /home/hunter/apache/www/default
+    # KeepAlive settings
+    # KeepAlive On
+    # MaxKeepAliveRequests 100 to 500
+    # KeepAliveTimeout 5
+
+    #Set Env Variable for database
+    # SetEnv DB_NAME agent
+    # SetEnv DB_PASS HGet$^%2(826lkSrwNbdFg2#%
+    # SetEnv DB_USER root
+    setEnv BASE_DIR 4aoeILdluaraeureadIdlie
+
+    <Directory /home/hunter/apache/www/default>
+        Options -Indexes -Includes -ExecCGI -FollowSymLinks +SymLinksIfOwnerMatch
+        AllowOverride All
+        Require all granted   
+        # else
+        # Require all denied
+        # Require ip 151.80.74.164 146.70.92.142     
+    </Directory>
+
+    <FilesMatch "\.txt$">
+        Require all denied
+    </FilesMatch>
+
+    <Location />
+        # Require all denied
+        # Require ip 146.70.20.242
+        Require all granted
+        #SSLRenegBufferSize 102480 # For SSL Buffer Error if any
+    </Location>
+
+    ErrorLog /home/hunter/apache/logs/cnc_error.log
+    CustomLog /home/hunter/apache/logs/cnc_access.log combined
+</VirtualHost>
+
+<VirtualHost *:80>    
+     DocumentRoot /home/hunter/apache/www/default
+    <Directory /home/hunter/apache/www/default>
+        Options -Indexes -Includes -ExecCGI -FollowSymLinks +SymLinksIfOwnerMatch
+        AllowOverride All
+        Require all granted        
+    </Directory>
+
+    <FilesMatch "\.txt$">
+        Require all denied
+    </FilesMatch>
+
+    ErrorLog /home/hunter/apache/logs/cnc_error.log
+    CustomLog /home/hunter/apache/logs/cnc_access.log combined
+</VirtualHost>

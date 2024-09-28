@@ -1,0 +1,16 @@
+# - name: Backup original php.ini file
+#   command: cp {{ php_ini_file }} {{ php_ini_file }}.bak
+#   args:
+#     creates: "{{ /etc/php/8.2/fpm/php.ini }}.bak"
+#   changed_when: false
+#   check_mode: no
+
+- name: Update PHP settings in php.ini
+  lineinfile:
+    path: "{{ php_ini_file }}"
+    regexp: "^{{ item.name }}\\s*=.*"
+    line: "{{ item.name }} = {{ item.value }}"
+    backup: yes
+  loop: "{{ php_ini_settings }}"
+  notify:
+    - restart-apache

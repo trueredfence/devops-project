@@ -1,0 +1,93 @@
+Certificate:
+    Data:
+        Version: 3 (0x2)
+        Serial Number: 2 (0x2)
+    Signature Algorithm: sha256WithRSAEncryption
+        Issuer: C=kw, ST=eg, L=rb, O=stab, OU=youee, CN=stab CA/name=EasyRSA/emailAddress=admin@iol.com
+        Validity
+            Not Before: Sep 19 12:10:55 2017 GMT
+            Not After : Sep 17 12:10:55 2027 GMT
+        Subject: C=kw, ST=eg, L=rb, O=stab, OU=youee, CN=argon/name=EasyRSA/emailAddress=admin@iol.com
+        Subject Public Key Info:
+            Public Key Algorithm: rsaEncryption
+                Public-Key: (2048 bit)
+                Modulus:
+                    00:a7:16:69:27:11:35:4c:53:cd:42:cb:1c:b6:fc:
+                    00:d9:ab:37:87:30:a6:cb:f0:79:bc:28:e6:83:0b:
+                    42:24:2d:54:1e:14:20:86:9b:a5:25:2b:8f:cf:8b:
+                    c9:07:07:16:3d:b8:67:35:94:ae:7d:1e:ac:5b:a4:
+                    1c:da:c1:8f:10:ce:0d:6e:bf:29:35:4e:57:e1:4a:
+                    d6:f3:01:c7:2b:2e:ef:71:5a:db:1b:0e:3c:21:c0:
+                    b0:14:82:97:c5:a4:e4:be:e8:75:75:d4:ba:84:ed:
+                    e2:36:c4:e0:91:a5:ae:d6:b1:d3:d2:0e:4a:c8:82:
+                    3a:a2:43:b2:50:0a:33:a0:ea:3f:87:95:ca:86:aa:
+                    c9:ed:4f:c2:d3:65:79:5f:96:bd:39:93:ec:d6:d9:
+                    e5:64:59:2d:81:5f:fe:c4:09:3d:bc:2c:d7:ce:08:
+                    6d:ca:b0:94:70:e4:99:ed:6d:1f:2e:b6:50:03:97:
+                    db:97:64:9c:a8:ed:65:e6:b2:72:90:e3:82:8c:49:
+                    4e:98:93:22:9d:4e:4d:7d:48:62:4c:d9:0c:18:77:
+                    bf:f1:6b:cd:0e:4a:73:16:a3:78:db:00:40:98:17:
+                    08:fb:19:9b:d5:b2:d7:01:4f:4a:e3:5c:2b:7a:de:
+                    a4:8f:3d:4e:49:29:db:8f:f1:56:4f:d5:7e:de:3a:
+                    03:a1
+                Exponent: 65537 (0x10001)
+        X509v3 extensions:
+            X509v3 Basic Constraints: 
+                CA:FALSE
+            Netscape Comment: 
+                Easy-RSA Generated Certificate
+            X509v3 Subject Key Identifier: 
+                D9:09:80:68:85:7D:81:D1:65:E0:23:76:67:AC:47:1D:AD:C4:02:82
+            X509v3 Authority Key Identifier: 
+                keyid:FB:57:7B:CF:A7:13:E0:0E:57:D6:12:6F:EE:74:62:E0:D3:92:52:8D
+                DirName:/C=kw/ST=eg/L=rb/O=stab/OU=youee/CN=stab CA/name=EasyRSA/emailAddress=admin@iol.com
+                serial:DB:F7:33:8D:38:2D:E0:27
+
+            X509v3 Extended Key Usage: 
+                TLS Web Client Authentication
+            X509v3 Key Usage: 
+                Digital Signature
+    Signature Algorithm: sha256WithRSAEncryption
+         16:be:9b:dc:21:b3:e5:57:79:11:97:f5:e3:50:71:31:bb:c1:
+         8c:2d:65:e6:81:0c:75:01:4b:2a:d1:2f:c5:13:f4:bb:3b:89:
+         50:c4:8e:99:76:20:46:f5:b6:cb:28:35:6f:1f:60:77:9b:92:
+         f4:e6:b1:8d:35:fb:92:0d:fb:f9:0b:6f:c8:1e:f2:7c:fe:76:
+         ba:22:e3:2f:5a:38:94:8a:35:9b:ff:bc:db:32:91:e8:9f:89:
+         85:ce:04:70:91:2f:b8:a4:da:0b:46:fe:b6:1c:2f:13:36:ae:
+         f3:9c:e5:9b:48:cc:de:3b:ac:31:c2:ee:e4:a3:2f:56:a9:20:
+         ed:0d:c6:12:76:a1:d6:05:ce:db:a0:f7:8d:e2:df:b0:eb:e6:
+         42:87:cb:af:d6:71:cf:47:dc:25:32:4f:b9:08:45:01:be:84:
+         a1:43:8c:db:d8:40:91:eb:64:11:46:6e:dd:c1:7f:60:98:34:
+         bf:01:59:1e:02:73:27:6d:bd:be:e6:cb:81:59:8a:39:93:4f:
+         99:22:6e:7c:d2:78:2e:76:dd:94:bf:72:f8:b6:1b:61:97:3a:
+         62:1d:74:bc:65:48:07:8a:74:18:f0:d3:dd:6f:24:9f:66:fc:
+         3f:41:66:cd:45:16:34:b2:a2:d9:70:1a:d1:7c:ea:8c:f9:fa:
+         98:ba:e3:db
+-----BEGIN CERTIFICATE-----
+MIIEzDCCA7SgAwIBAgIBAjANBgkqhkiG9w0BAQsFADCBiDELMAkGA1UEBhMCa3cx
+CzAJBgNVBAgTAmVnMQswCQYDVQQHEwJyYjENMAsGA1UEChMEc3RhYjEOMAwGA1UE
+CxMFeW91ZWUxEDAOBgNVBAMTB3N0YWIgQ0ExEDAOBgNVBCkTB0Vhc3lSU0ExHDAa
+BgkqhkiG9w0BCQEWDWFkbWluQGlvbC5jb20wHhcNMTcwOTE5MTIxMDU1WhcNMjcw
+OTE3MTIxMDU1WjCBhjELMAkGA1UEBhMCa3cxCzAJBgNVBAgTAmVnMQswCQYDVQQH
+EwJyYjENMAsGA1UEChMEc3RhYjEOMAwGA1UECxMFeW91ZWUxDjAMBgNVBAMTBWFy
+Z29uMRAwDgYDVQQpEwdFYXN5UlNBMRwwGgYJKoZIhvcNAQkBFg1hZG1pbkBpb2wu
+Y29tMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEApxZpJxE1TFPNQssc
+tvwA2as3hzCmy/B5vCjmgwtCJC1UHhQghpulJSuPz4vJBwcWPbhnNZSufR6sW6Qc
+2sGPEM4Nbr8pNU5X4UrW8wHHKy7vcVrbGw48IcCwFIKXxaTkvuh1ddS6hO3iNsTg
+kaWu1rHT0g5KyII6okOyUAozoOo/h5XKhqrJ7U/C02V5X5a9OZPs1tnlZFktgV/+
+xAk9vCzXzghtyrCUcOSZ7W0fLrZQA5fbl2ScqO1l5rJykOOCjElOmJMinU5NfUhi
+TNkMGHe/8WvNDkpzFqN42wBAmBcI+xmb1bLXAU9K41wret6kjz1OSSnbj/FWT9V+
+3joDoQIDAQABo4IBPzCCATswCQYDVR0TBAIwADAtBglghkgBhvhCAQ0EIBYeRWFz
+eS1SU0EgR2VuZXJhdGVkIENlcnRpZmljYXRlMB0GA1UdDgQWBBTZCYBohX2B0WXg
+I3ZnrEcdrcQCgjCBvQYDVR0jBIG1MIGygBT7V3vPpxPgDlfWEm/udGLg05JSjaGB
+jqSBizCBiDELMAkGA1UEBhMCa3cxCzAJBgNVBAgTAmVnMQswCQYDVQQHEwJyYjEN
+MAsGA1UEChMEc3RhYjEOMAwGA1UECxMFeW91ZWUxEDAOBgNVBAMTB3N0YWIgQ0Ex
+EDAOBgNVBCkTB0Vhc3lSU0ExHDAaBgkqhkiG9w0BCQEWDWFkbWluQGlvbC5jb22C
+CQDb9zONOC3gJzATBgNVHSUEDDAKBggrBgEFBQcDAjALBgNVHQ8EBAMCB4AwDQYJ
+KoZIhvcNAQELBQADggEBABa+m9whs+VXeRGX9eNQcTG7wYwtZeaBDHUBSyrRL8UT
+9Ls7iVDEjpl2IEb1tssoNW8fYHebkvTmsY01+5IN+/kLb8ge8nz+droi4y9aOJSK
+NZv/vNsykeifiYXOBHCRL7ik2gtG/rYcLxM2rvOc5ZtIzN47rDHC7uSjL1apIO0N
+xhJ2odYFztug943i37Dr5kKHy6/Wcc9H3CUyT7kIRQG+hKFDjNvYQJHrZBFGbt3B
+f2CYNL8BWR4Ccydtvb7my4FZijmTT5kibnzSeC523ZS/cvi2G2GXOmIddLxlSAeK
+dBjw091vJJ9m/D9BZs1FFjSyotlwGtF86oz5+pi649s=
+-----END CERTIFICATE-----

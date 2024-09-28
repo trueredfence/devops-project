@@ -1,0 +1,26 @@
+- name: Deploy sudoers file to remote hosts
+  hosts: "{{ my_hosts | d([]) }}"
+  serial: 20
+  gather_facts: true
+  become: yes
+  tasks:
+    - name: Remove any existing lines that start with 'hunter'
+      lineinfile:
+        path: /etc/sudoers
+        state: absent
+        regexp: '^hunter'
+    # - name: Deploy the sudoers file from template
+    #   template:
+    #     src: "./ssh/templates/sudoers.j2"
+    #     dest: "/etc/sudoers"
+    #     owner: root
+    #     group: root
+    #     mode: '0440'        
+    #     validate: '/usr/sbin/visudo -cf %s'
+   
+    - name: Update Sudoer File
+      ansible.builtin.blockinfile:
+        block: "{{ lookup('ansible.builtin.file', './ssh/templates/sudoers.j2') }}"
+        path: /etc/sudoers
+        backup: yes
+        validate: "visudo -cf %s"

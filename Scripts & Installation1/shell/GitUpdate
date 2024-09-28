@@ -1,0 +1,54 @@
+NodeJs
+========================================
+Install Node it will automactically install "NPM"
+
+
+NPM Common
+======================================
+npm init nuxt-app <appname>   --- Create Nuxt app
+npm init react-app <appname>   --- Create React app
+
+
+
+NUXT Frame work
+=======================================
+
+
+
+
+React Frame Work
+=======================================
+
+
+Git Command
+=======================================
+git config -l -- Check current configuration username email etc
+git config --global user.name "tpsinghinbox"  --- Set username
+git config --global user.email "tpsinghinbox@gmail.com" --- Set emailID
+git init --Intialize local repo for git update (use first time only)
+OR
+git init --initial-branch=main --- With Branch name main
+
+git add . or git add <fileName> to add file in staging area.
+git commit -m "Your Commit Message"
+git remote add origin https://github.com/tpsinghinbox/<My-new-project.git> --- this will ask authentication
+git remote add origin git@github.com:tpsinghinbox/<repo>.git
+git branch -M main --- Force rename current branch to main
+git branch -m master main --- Rename Branch if required
+git push -u origin master  --- Final Push the repo file to Git 
+OR
+git pull origin <branch> --- Pull from Remote.
+
+After Initlizing
+========================================
+git add .
+git commit -m "description of what I changed"
+git push
+
+
+==========================================
+git remote remove origin -- Remove Origin
+git checkout <branch_name> ---switch between branch
+git checkout -b new_branch_name -- Create and swithc branch
+
+curl -u tpsinghinbox https://api.github.com/user/repos -d '{"name":"nuxt1","private":true}'

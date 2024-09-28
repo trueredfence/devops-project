@@ -1,0 +1,36 @@
+db.createCollection( "newusers" , { 
+   validator: { $jsonSchema: { 
+      bsonType: "object",      
+      required: [ "username", "pass" ], 
+      properties: {
+         _id : {
+              bsonType: "objectId" }, 
+         username: { 
+            bsonType: "string",           
+            description: "username" },
+         r_date: { 
+            bsonType: "date",           
+            description: "Registration date" },
+         pass: { 
+            bsonType: "string",
+            description: "Password" },                   
+         salt: { 
+            bsonType: "string",
+            description: "Password" }          
+      }
+   }
+}});
+
+db.newusers.createIndex({username: 1 },{unique: true})
+
+db.newusers.insert({
+  username: "tps21",
+  pass : "abc"
+})
+db.usergp.insert({
+  _id: NumberInt(1),
+  gp_id: "1",  
+  gp_name: "Admin",
+  dtg: new Date()
+})
+

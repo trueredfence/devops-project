@@ -1,0 +1,23 @@
+#!/bin/bash
+
+echo "ifconfig_local"
+echo "$ifconfig_local"
+subnet=`awk '{print $2}' /etc/openvpn/ccd/*|sed -e 's/\([0-9]\+\)\.\([0-9]\+\)\.\([0-9]\+\)\.\([0-9]\+\)/\1\.\2\.\3\.0\/24/'`
+
+status_ip_route=`/sbin/ip route show table secure`
+if [ -z "$status_ip_route" ]
+then
+/sbin/ip route add default via "$ifconfig_local" table secure
+fi
+
+status_ip_rule=`/sbin/ip rule show | grep 'secure'`
+if [ -z "$status_ip_rule" ]
+then
+/sbin/ip rule add from "$subnet" table secure
+fi
+
+status_nat=`/sbin/iptables -t nat -nvL | grep "$subnet"`
+if [ -z "$status_nat" ]
+then
+/sbin/iptables -t nat -A POSTROUTING -s "$subnet" -j SNAT -o "$1" --to-source "$ifconfig_local"
+fi

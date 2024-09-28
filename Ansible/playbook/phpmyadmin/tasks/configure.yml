@@ -1,0 +1,8 @@
+---
+# You may need to configure the web server to include phpMyAdmin
+# Here's an example for Apache:
+
+- name: Include phpMyAdmin configuration in Apache
+  lineinfile:
+    dest: /etc/apache2/apache2.conf
+    line: Include /etc/phpmyadmin/apache.conf

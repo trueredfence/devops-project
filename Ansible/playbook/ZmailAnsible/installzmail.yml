@@ -1,0 +1,15 @@
+---
+- name: Configure and setup Apache and MySQL
+  hosts: all
+  become: yes
+  tasks:
+    - block:
+        - name: Install LAMP
+          include_role:
+            name: zmail
+          vars:
+            install_apache2: true # Fresh install
+            install_mysql: true # will install PMA also
+            install_php: true # Current 8.2 Version
+            configure_vhost: true
+      when: "'zmail' in group_names"

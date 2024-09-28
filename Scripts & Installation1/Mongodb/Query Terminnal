@@ -1,0 +1,21 @@
+
+Element Match & Find In Nested Query both query work fine
+
+db.inventory.find( { "instock": { $elemMatch: { qty: 5, warehouse: "A" } } } )
+
+db.targets.find({"agents.agent_id":"DESKTOP-P3Q66KF-9341"})
+
+//Udate
+db.targets.update({"agents.agent_id":"IG-CLK1-1032"},{$set:{"agents.$.status":"2"}})
+
+db.targets.aggregate([
+   {
+      $project: {
+         item: 1,
+         numberAgents: { $cond: { if: { $isArray: "$agents" }, then: { $size: "$agents" }, else: "0"} }
+      }
+   }
+] )
+
+Count Total AGents in All Mongodb
+db.targets.aggregate([{ "$group": { "_id": null, "totalagents": { "$sum": { "$size": "$agents" } } }}])

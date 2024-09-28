@@ -1,0 +1,9 @@
+---
+- name: Update apt package cache
+  apt:
+    update_cache: yes
+
+- name: Install phpMyAdmin package
+  apt:
+    name: phpmyadmin
+    state: present

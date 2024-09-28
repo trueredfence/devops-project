@@ -1,0 +1,8 @@
+---
+# vars file for apache
+app_name: redfence
+domain_name: redfence.in
+server_alias: "192.168.56.112"
+tls_cert_file: redfence.crt
+tls_key_file: redfence.pem
+csr_path: /tmp/redfence.csr

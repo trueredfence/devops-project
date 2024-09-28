@@ -1,0 +1,24 @@
+FROM php:8.3-apache
+#FROM php:8.2.18-zts-alpine3.19
+ARG DEBIAN_FRONTEND=noninteractive
+# Update
+RUN apt-get -y update --fix-missing && \
+    apt-get upgrade -y && \
+    apt-get --no-install-recommends install -y apt-utils \
+    build-essential && \
+    rm -rf /var/lib/apt/lists/*
+
+EXPOSE 80
+EXPOSE 443
+
+# Insure an SSL directory exists
+RUN mkdir -p /etc/apache2/ssl
+
+# Enable SSL support
+RUN a2enmod ssl && a2enmod rewrite
+
+# Enable apache modules
+RUN a2enmod rewrite headers
+
+# Cleanup
+RUN rm -rf /usr/src/*

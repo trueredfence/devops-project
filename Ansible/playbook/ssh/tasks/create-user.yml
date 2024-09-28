@@ -1,0 +1,51 @@
+---
+- name: Creating New user taks
+  debug:
+    msg: "Running Create new user task"
+
+- name: Generate random password for {{ new_user_details.name }}
+  set_fact:
+    user_password: "{{ lookup('community.general.random_string', length=16, min_lower=1, min_upper=2, min_numeric=3, min_special=4, override_special='-_+!#$()[]') }}"
+
+- name: New generate password for {{ new_user_details.name }}
+  debug:
+    msg: "Host: {{ inventory_hostname }} | User: {{ new_user_details.name }} | Password: {{ user_password }}"
+
+- name: Create user {{ new_user_details.name }}
+  user:
+    name: "{{ new_user_details.name }}"
+    password: "{{ user_password | password_hash('sha512') }}"
+    state: present
+
+- name: Set permissions on /home/{{ new_user_details.name }}
+  file:
+    path: "/home/{{ new_user_details.name }}"
+    owner: "{{ new_user_details.name }}"
+    group: "{{ new_user_details.name }}"
+    state: directory
+    mode: '0750'
+- name: Add host details to list
+  set_fact:
+    user_details: "{{ user_details | default([]) + [{'host': inventory_hostname, 'user': new_user_details.name , 'port': ansible_port , 'password': user_password}] }}"
+
+#   lineinfile:
+#     path: /etc/sudoers
+#     line: "{{ new_user_details.name }} ALL=(ALL) NOPASSWD: /bin/systemctl *"
+#     validate: "visudo -cf %s"
+
+# - name: Add {{ new_user_details.name }} user to sudoers for firewall Cmd
+#   lineinfile:
+#     path: /etc/sudoers
+#     line: "{{ new_user_details.name }} ALL=(ALL) NOPASSWD: /usr/bin/firewall-cmd *"
+#     validate: "visudo -cf %s"
+
+- name: Save pasword details for {{ new_user_details.name }}
+  local_action:
+    module: lineinfile
+    path: "{{ password_output_file }}"
+    line: "{{ item.host }},{{ item.user }},{{ item.password }}"
+    create: yes
+  delegate_to: localhost
+  run_once: true
+  with_items: "{{ user_details }}"
+  

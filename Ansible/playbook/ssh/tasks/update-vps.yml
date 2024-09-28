@@ -1,0 +1,33 @@
+- name: Take backup of the original CentOS-Base.repo
+  copy:
+    src: /etc/yum.repos.d/{{ centos_base_repo }}
+    dest: /etc/yum.repos.d/{{ centos_base_repo }}.bak
+    backup: yes
+    remote_src: yes
+  ignore_errors: yes
+
+- name: Replace CentOS-Base.repo with the template
+  template:
+    src: "{{ centos_base_repo_template }}"
+    dest: "/etc/yum.repos.d/{{ centos_base_repo }}"
+    owner: root
+    group: root
+    mode: 0644
+    
+- name: Update repository metadata
+  command: yum makecache
+
+- name: Install required packages
+  yum:
+    name: "{{ item }}"
+    state: latest
+  loop: "{{ default_package_modules }}"
+
+- name: Update all packages
+  ansible.builtin.yum:
+    name: "*"
+    state: latest
+    exclude: kernel*
+    
+- name: Include security tasks
+  include_tasks: enable-security.yml

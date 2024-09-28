@@ -1,0 +1,162 @@
+#--------------------------------------------
+#Copy first Crt file issue by SSL Provider
+#Pvt Key gen during CSR 
+#ca-bundele issue by SSL Provider
+#--------------------------------------------
+yum update -y
+yum install epel-release vim wget firewalld mod_ssl policycoreutils-python gcc pcre-static pcre-devel openssl-devel -y
+wget https://www.haproxy.org/download/2.4/src/haproxy-2.4.0.tar.gz -O haproxy.tar.gz
+tar xzvf haproxy.tar.gz
+make TARGET=linux-glibc USE_PCRE=1 USE_OPENSSL=1 USE_ZLIB=1 USE_CRYPT_H=1 USE_LIBCRYPT=1
+make install 
+mkdir -p /var/www/html/.well-known/pki-validation/ && mkdir -p /etc/haproxy &&  mkdir -p /var/lib/haproxy &&  touch /var/lib/haproxy/stats &&  ln -s /usr/local/sbin/haproxy /usr/sbin/haproxy &&  cp examples/haproxy.init /etc/init.d/haproxy &&  chmod 755 /etc/init.d/haproxy && systemctl daemon-reload && chkconfig haproxy on && useradd -r haproxy && haproxy -v 
+vim /etc/ssl/kababonline.shop.crt
+vim /etc/haproxy/haproxy.cfg
+
+
+#--------------------------------------------
+OPEN SSL for HaProxy
+#--------------------------------------------
+h1-case-adjust content-length Content-Length (Header Change) if requried
+# Generate a unique private key (KEY)
+sudo openssl genrsa -out mydomain.key 2048
+
+# Generating a Certificate Signing Request (CSR)
+sudo openssl req -new -key mydomain.key -out mydomain.csr
+
+# Creating a Self-Signed Certificate (CRT)
+openssl x509 -req -days 365 -in mydomain.csr -signkey mydomain.key -out mydomain.crt
+
+# Append KEY and CRT to mydomain.pem
+sudo bash -c 'cat mydomain.key mydomain.crt >> /etc/ssl/private/mydomain.pem'
+
+# Specify PEM in haproxy config
+sudo vim /etc/haproxy/haproxy.cfg
+listen haproxy
+  bind 0.0.0.0:443 ssl crt /etc/ssl/private/mydomain.pem
+
+openssl req -nodes -x509 -newkey rsa:2048 -keyout /etc/ssl/private/test.key -out /etc/ssl/private/test.crt -days 30
+cat /etc/ssl/private/test.key /etc/ssl/private/test.crt > /etc/ssl/private/test.pem
+
+#--------------------------------------------
+#Copy first Crt file issue by SSL Provider
+#Pvt Key gen during CSR 
+#ca-bundele issue by SSL Provider
+#--------------------------------------------
+
+100.20.92.101
+44.225.181.72
+44.227.217.144
+
+
+systemctl start haproxy && systemctl enable haproxy && systemctl status haproxy
+systemctl start firewalld && systemctl enable firewalld &&
+firewall-cmd --permanent --add-service=https --zone=trusted &&
+firewall-cmd --permanent --add-service=http --zone=trusted &&
+firewall-cmd --permanent --remove-service=http --zone=public &&
+firewall-cmd --permanent --remove-service=https --zone=public &&
+firewall-cmd --set-default-zone=trusted &&
+firewall-cmd --reload
+
+-----------------------------------------
+Backend VPS Command
+Dont-rUN WithOut Confirmation
+firewall-cmd --permanent --add-service=https --zone=trusted 
+firewall-cmd --set-default-zone=trusted && firewall-cmd --reload
+firewall-cmd --reload
+
+firewall-cmd --permanent --remove-source=212.24.104.168 --zone=trusted
+firewall-cmd --permanent --add-source=44.227.217.144  --zone=trusted
+firewall-cmd --reload
+firewall-cmd --get-active-zones
+
+
+firewall-cmd --zone=trusted --add-port=7119/tcp --permanent
+firewall-cmd --zone=trusted --list-all
+
+mkdir -p /etc/haproxy && 
+mkdir -p /var/lib/haproxy && 
+touch /var/lib/haproxy/stats && 
+ln -s /usr/local/sbin/haproxy /usr/sbin/haproxy && 
+cp examples/haproxy.init /etc/init.d/haproxy && 
+chmod 755 /etc/init.d/haproxy &&
+systemctl daemon-reload &&
+chkconfig haproxy on &&
+useradd -r haproxy &&
+haproxy -v        
+        
+        
+        
+        
+// To add or update in Backend VPS
+ystemctl enable firewalld
+firewall-cmd --get-active-zones
+# remove if 
+firewall-cmd --permanent --remove-source=146.70.20.251 --zone=trusted
+
+
+firewall-cmd --set-default-zone=trusted
+
+firewall-cmd --permanent --add-source=178.63.172.18 --zone=trusted &
+firewall-cmd --permanent --add-service=https --zone=trusted &
+firewall-cmd --permanent --remove-service=http --zone=public &
+firewall-cmd --permanent --remove-service=https --zone=public &
+firewall-cmd --reload
+
+
+
+
+netstat -tunlp
+    2  passwd
+    3  systemctl stop postfix
+    4  systemctl stop chronyd
+    5  systemctl disable postfix
+    6  systemctl disable chronyd
+    7  cp /etc/ssh/sshd_config /etc/ssh/sshd_config.original
+    8  vi /etc/ssh/sshd_config
+    9  yum install -y vim net-tools firewalld policycoreutils-python
+   10  semanage port -a -t ssh_port_t -p tcp 7119
+   11  systemctl start firewalld
+   12  firewall-cmd --permanent --zone=public --add-port=7119/tcp
+   13  systemctl restart sshd.servicesystemctl restart sshd.service
+   14  netstat -tunlp
+   15  firewall-cmd --reload
+   16  ssh root@178.63.172.18 -p 7119
+   17  netstat -tunlp
+   18  yum install -y vim net-tools firewalld policycoreutils-python
+   19  firewall-cmd --permanent --zone=public --add-port=7119/tcp
+   20  firewall-cmd --reload
+   21  init 6
+   22  systemctl restart sshd.service
+   23  yum update -y
+   24  logout
+   25  yum update -y
+   26  yum install epel-release vim wget firewalld mod_ssl policycoreutils-python gcc pcre-static pcre-devel openssl-devel -y
+   27  cd ~
+   28  wget https://www.haproxy.org/download/2.4/src/haproxy-2.4.0.tar.gz -O ~/haproxy.tar.gz
+   29  tar xzvf haproxy.tar.gz
+   30  cd haproxy-2.4.0/
+   31  make TARGET=linux-glibc USE_PCRE=1 USE_OPENSSL=1 USE_ZLIB=1 USE_CRYPT_H=1 USE_LIBCRYPT=1
+   32  make install 
+   33  mkdir -p /etc/haproxy &&  mkdir -p /var/lib/haproxy &&  touch /var/lib/haproxy/stats &&  ln -s /usr/local/sbin/haproxy /usr/sbin/haproxy &&  cp examples/haproxy.init /etc/init.d/haproxy &&  chmod 755 /etc/init.d/haproxy && systemctl daemon-reload && chkconfig haproxy on && useradd -r haproxy && haproxy -v        
+   34  cd /etc/haproxy/
+   35  haproxy.cfg
+   36  vim haproxy.cfg
+   37  vim /etc/ssl/kokoo.live.crt
+   38  systemctl start haproxy && systemctl enable haproxy && systemctl status haproxy
+   39  systemctl start firewalld && systemctl enable firewalld
+   40  systemctl stop firewalld
+   41  vim /etc/haproxy/haproxy.cfg 
+   42  systemctl restart haproxy
+   43  systemctl start firewalld
+   44  systemctl stop firewalld
+   45  systemctl start firewalld
+   46  firewall-cmd --permanent --add-service=https --zone=public && firewall-cmd --set-default-zone=public && firewall-cmd --reload        
+   47  netstat -tunlp
+   48  ifconfig
+   49  cat /etc/haproxy/haproxy.cfg 
+   50  ifconfig 
+   51  vim /etc/haproxy/haproxy.cfg 
+   52  ifconfig 
+   53  history
+

@@ -1,0 +1,24 @@
+---
+#tasks file for lamp
+- name: Include apache task
+  include_tasks: install-apache.yml
+
+- name: Include setup apache task
+  include_tasks: setup-apache.yml
+
+# - name: Include selinux setup task for apache
+#   include_tasks: selinux-apache.yml
+
+- name: Include php task
+  include_tasks: install-php.yml
+
+- name: Include php setup task
+  include_tasks: setup-php.yml
+
+- name: Include mysql & PMA task
+  include_tasks: install-mysql.yml
+
+- name: Include setup apache task
+  include_tasks: setup-mysql.yml
+
+

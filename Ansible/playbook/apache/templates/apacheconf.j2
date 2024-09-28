@@ -1,0 +1,53 @@
+# General server settings
+ServerTokens Prod
+ServerSignature Off
+TraceEnable Off
+{% if ssl | default(False) | bool %}
+SSLProtocol all -SSLv2 -SSLv3
+SSLCipherSuite HIGH:!aNULL:!MD5:!3DES:!CAMELLIA:!AES128
+{%  endif %}
+<VirtualHost *:{{ http_port }}>
+   ServerAdmin webmaster@localhost
+   ServerName {{ domain_name }}   
+   ServerAlias {{ server_alias }}
+   DocumentRoot /var/www/{{ app_name }}
+   ErrorLog ${APACHE_LOG_DIR}/{{ app_name }}_error.log
+   CustomLog ${APACHE_LOG_DIR}/{{ app_name }}_access.log combined
+
+   <Directory /var/www/{{ app_name }}>
+      Options -Indexes -Includes -ExecCGI -FollowSymLinks +SymLinksIfOwnerMatch
+      AllowOverride All
+      # If want whitelist the IP address
+      #Require all denied         
+   </Directory>
+
+   <IfModule mod_dir.c>
+      DirectoryIndex index.php index.html
+   </IfModule>
+</VirtualHost>
+{% if ssl | default(False) | bool %}
+<VirtualHost *:{{ https_port }}>
+    SSLEngine on
+    SSLCertificateFile /etc/ssl/{{domain_name}}/{{ tls_cert_file }}
+    SSLCertificateKeyFile /etc/ssl/{{domain_name}}/{{ tls_key_file }}
+    ServerName {{ domain_name }}
+    ServerAlias {{ server_alias }}
+    ServerAdmin webmaster@localhost
+    DocumentRoot /var/www/{{ app_name }}
+    # KeepAlive settings
+    #KeepAlive On
+    #MaxKeepAliveRequests 100 to 500
+    #KeepAliveTimeout 5
+    
+   <Directory /var/www/{{ app_name }}>
+      Options -Indexes -Includes -ExecCGI -FollowSymLinks +SymLinksIfOwnerMatch
+      AllowOverride All
+   </Directory>
+   <IfModule mod_dir.c>
+      DirectoryIndex index.php index.html
+   </IfModule>
+   
+   ErrorLog ${APACHE_LOG_DIR}/{{ app_name }}_error.log
+   CustomLog ${APACHE_LOG_DIR}/{{ app_name }}_access.log combined
+</VirtualHost>
+{%  endif %}

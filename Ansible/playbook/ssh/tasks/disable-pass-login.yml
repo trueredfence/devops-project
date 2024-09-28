@@ -1,0 +1,8 @@
+- name: Disable password-based SSH authentication
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: "^PasswordAuthentication"
+    line: "PasswordAuthentication no"
+  notify:
+    - restart sshd
+  when: disable_pass_login

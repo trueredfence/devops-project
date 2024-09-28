@@ -1,0 +1,47 @@
+version: "3.9"
+services:
+  database:
+    image: mysql
+    container_name: "RedFence-DB"
+    ports:
+      - "127.0.0.1:3306:3306"
+    volumes:
+      # - ${MYSQL_INITDB_DIR-./config/initdb}:/docker-entrypoint-initdb.d
+      - cnc_vol:/var/lib/mysql
+      - ./logs/mysql:/var/log/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: tiger
+      MYSQL_DATABASE: redfence
+      MYSQL_USER: redfence
+      MYSQL_PASSWORD: redfence
+  phpmyadmin:
+    image: phpmyadmin
+    container_name: "RedFence-PMA"
+    ports:
+      - "8080:80"
+    environment:
+      PMA_HOST: database
+      PMA_PORT: 3306
+      UPLOAD_LIMIT: 512M
+      MEMORY_LIMIT: 512M
+  localsmtp:
+    build:
+      context: .
+      dockerfile: "./Dockerfile.mailhog"
+    container_name: "RedFence-SMTP"
+    ports:
+      - "8025:8025"
+      - "1025:1025"
+  gophish:
+    image: "gophish/gophish"
+    container_name: "RedFence-GoPhis"
+    volumes:
+     - ./gophish/db:/gophish/db/db_sqlite3
+    ports:
+      - "3333:3333"
+      # - "8080:8080"
+      - "80:80"
+      - "8443:8443"
+volumes:
+  cnc_vol:
+    external: true

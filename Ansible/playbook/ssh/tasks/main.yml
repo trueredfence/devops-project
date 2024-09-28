@@ -1,0 +1,45 @@
+---
+# - name: Testing
+#   include_tasks: test.yml
+
+- name: Include update vps task
+  include_tasks: update-vps.yml
+  when: update_vps
+
+# - name: Zshell
+#   include_tasks: zshell.yml
+#   when: enable_zshell
+
+- name: Include create {{ default_infra_user }} user task
+  include_tasks: create-infra-user.yml  
+  when: create_infra_user
+
+- name: Add sudoers task for {{ new_user_details.name }}
+  include_tasks: sudoers.yml
+  
+- name: Include create {{ new_user_details.name  }} user task
+  include_tasks: create-user.yml
+  when: create_user
+
+- name: Add ssh key to {{ new_user_details.name  }}
+  include_tasks: add-ssh-key.yml
+  when:
+    - create_user
+    - new_user_details.key | length > 0
+
+- name: Harden SSH Configuration
+  include_tasks: harden-ssh.yml
+  when: harden_ssh
+
+- name: Include change password for {{ ansible_user }} task
+  include_tasks: change-password.yml
+  when: change_password_current_user
+
+- name: Disable root ssh
+  include_tasks: disable-root-ssh.yml
+  when: disable_root_ssh
+
+- name: Disable password login
+  include_tasks: disable-pass-login.yml
+  when: disable_pass_login
+

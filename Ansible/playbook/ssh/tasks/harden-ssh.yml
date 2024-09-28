@@ -1,0 +1,79 @@
+---
+- name: Backup the original SSH daemon config
+  copy:
+    src: /etc/ssh/sshd_config
+    dest: /etc/ssh/sshd_config.bak
+    backup: yes
+
+- name: Set a random port if ansible_port is 22
+  set_fact:
+    ssh_port: "{{ chosen_ssh_port }}"
+
+- name: Print Login port for SSH
+  debug:
+    msg: "{{ ssh_port }}"
+    
+- name: Add new {{ sshd_conf_file }} ssh config file to vps.
+  template:
+    src: "{{ sshd_conf_file_template }}"
+    dest: "/etc/ssh/{{ sshd_conf_file }}"
+    owner: root
+    group: root
+    mode: 0644
+  notify: restart sshd
+
+# - name: Update New SSH File
+#   ansible.builtin.blockinfile:
+#     block: "{{ lookup('ansible.builtin.file', './ssh/tempates/sshd_config.j2') }}"
+#     path: /etc/ssh/sshd_config
+#     backup: yes
+#     validate: /usr/sbin/sshd -T -f %s
+
+- name: Ensure SSH directory for custom configurations exists
+  file:
+    path: /etc/systemd/system/sshd-keygen.service.d
+    state: directory
+    mode: "0755"
+  notify: restart sshd
+
+- name: Create SSH key generation configuration
+  copy:
+    dest: /etc/systemd/system/sshd-keygen.service.d/ssh-audit.conf
+    content: |
+      [Unit]
+      ConditionFileNotEmpty=
+      ConditionFileNotEmpty=!/etc/ssh/ssh_host_ed25519_key
+    mode: "0644"
+  notify: restart sshd
+
+- name: Reload systemd to recognize new SSH keygen service configuration
+  systemd:
+    daemon_reload: yes
+
+- name: Replace new key length value
+  shell: awk '{$5="3071"}1' /etc/ssh/moduli > /etc/ssh/moduli.safe
+  args:
+    creates: /etc/ssh/moduli.safe
+
+- name: Move new file to original location
+  command: mv -f /etc/ssh/moduli.safe /etc/ssh/moduli
+  args:
+    removes: /etc/ssh/moduli.safe
+  notify: restart sshd
+# - name: Remove existing SSH host keys
+#   command:
+#     cmd: rm -f /etc/ssh/ssh_host_*
+#     creates: /etc/ssh/ssh_host_ed25519_key
+
+# - name: Generate new SSH host keys
+#   command:
+#     cmd: ssh-keygen -t ed25519 -f /etc/ssh/ssh_host_ed25519_key -N ""
+#     creates: /etc/ssh/ssh_host_ed25519_key
+#   notify: restart sshd
+
+# - name: Set group for SSH host key
+#   file:
+#     path: /etc/ssh/ssh_host_ed25519_key
+#     group: ssh_keys
+#     mode: "0640"
+#   notify: restart sshd

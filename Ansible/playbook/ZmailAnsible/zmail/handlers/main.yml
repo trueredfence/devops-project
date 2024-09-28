@@ -1,0 +1,10 @@
+---
+# handlers file for apache
+- name: restart-apache # name must be similar to notify task
+  service:
+    name: apache2
+    state: restarted
+- name: restart-mysql # name must be similar to notify task
+  service:
+    name: mysql
+    state: restarted

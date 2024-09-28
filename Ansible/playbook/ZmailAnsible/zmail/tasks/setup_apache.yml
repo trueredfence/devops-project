@@ -1,0 +1,40 @@
+---
+# Install apache
+- name: Install apache2 packages
+  apt: name={{ item }} update_cache=yes state=latest
+  loop: ["apache2", "apache2-utils", "openssl"]
+
+# Enable apache service
+- name: Ensure Apache has selected state and enabled on boot.
+  service:
+    name: "apache2"
+    state: "started"
+    enabled: true
+  notify: restart-apache
+
+# Enable apache modes
+- name: Enable Apache mods.
+  file:
+    src: "/etc/apache2/mods-available/{{ item }}.load"
+    dest: "/etc/apache2/mods-enabled/{{ item }}.load"
+    state: link
+    mode: 0644
+  with_items: "{{ apache_mods_enabled }}"
+  notify: restart-apache
+
+# Remove Default VHost File
+- name: Remove default vhost in sites-enabled.
+  file:
+    path: "/etc/apache2/sites-enabled/{{ apache_default_vhost_filename }}"
+    state: absent
+  notify: restart-apache
+
+  #when: apache_remove_default_vhost
+- name: "UFW firewall allow HTTP on ports"
+  ufw:
+    rule: allow
+    port: "{{ item }}"
+    proto: tcp
+  loop:
+    - "{{ apache_port }}"
+    - "{{ apache_port_ssl }}"

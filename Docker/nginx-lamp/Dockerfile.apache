@@ -1,0 +1,20 @@
+FROM php:8.3-apache
+ARG DEBIAN_FRONTEND=noninteractive
+# Update
+RUN apt-get -y update --fix-missing && \
+    apt-get upgrade -y && \
+    apt-get --no-install-recommends install -y apt-utils \
+    build-essential && \
+    rm -rf /var/lib/apt/lists/*
+
+# Insure an SSL directory exists
+RUN mkdir -p /etc/apache2/ssl
+
+# Enable SSL support
+RUN a2enmod ssl && a2enmod rewrite
+
+# Enable apache modules
+RUN a2enmod rewrite headers
+
+# Cleanup
+RUN rm -rf /usr/src/*

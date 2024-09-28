@@ -1,0 +1,33 @@
+#!/bin/bash
+
+
+#filecheck="/tmp/vpn/$1.status"
+
+#if [ ! -e "$filecheck" ]
+#then
+#/bin/touch $filecheck
+#fi
+
+tun_line_num=`sed -n "/$1/ =" /etc/openvpn/foolsm/openvpn.conf | sed -n '1p' `
+if [ -n "$tun_line_num" ]
+then
+start_line=`expr $tun_line_num - 1`
+end_line=`expr $start_line + 6`
+sed "$start_line,$end_line d" -i /etc/openvpn/foolsm/openvpn.conf
+fi
+get_pid=`/bin/ps aux | /bin/grep /etc/openvpn/foolsm/lsm.conf | /usr/bin/awk '{print$2}' | /bin/sed -n '1p'`
+/usr/bin/kill $get_pid
+
+check_tun_exist=`/bin/cat /proc/net/dev | /bin/grep -o tun`
+if [ -n "$check_tun_exist" ]
+then
+/usr/sbin/foolsm -c  /etc/openvpn/foolsm/lsm.conf >> /var/log/openvpn_lsm
+fi
+
+/bin/bash /opt/gateway/traffic_status.sh change_status $1 red
+/bin/rm -f /tmp/vpn/$1.status
+
+
+#/bin/echo "1" > $filecheck
+#/bin/bash /opt/gateway/traffic_status.sh update_status 
+/bin/bash /etc/openvpn/foolsm/chg_vpn_route.sh

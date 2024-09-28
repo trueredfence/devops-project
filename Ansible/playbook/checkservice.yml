@@ -1,0 +1,38 @@
+---
+- name: Check Services running on VPS
+  hosts: "{{ my_hosts | d([]) }}"
+  # serial: 30
+  gather_facts: false
+  become: yes
+  vars:
+    service:
+      name: 
+        - firewalld.service
+      action: 'check' # check or enable  
+
+  tasks:  
+    - name: Gather service facts
+      service_facts:
+      register: services_state
+      when: service.action == 'check'
+
+    - name: Report services that are not running
+      debug:
+        msg: "Service {{ item }} is NOT running or not found"
+      when: >
+        service.action == 'check' and (
+          item not in services_state.ansible_facts.services or
+          services_state.ansible_facts.services[item].state != 'running'
+        )
+      loop: "{{ service.name }}"      
+
+      # - name: Report services that are running
+      # debug:
+      #   msg: "Service {{ item }} is running."
+      # when: >
+      #   service.action == 'check' and (
+      #     item in services_state.ansible_facts.services or
+      #     services_state.ansible_facts.services[item].state == 'running'
+      #   }
+      # loop: "{{ service.name }}"
+      # when: service.action == 'check'

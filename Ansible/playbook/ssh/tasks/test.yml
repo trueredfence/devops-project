@@ -1,0 +1,10 @@
+---
+- name: Check if {{ ssh_public_key_file }} key is already present
+  command: "grep -Fxq '{{ lookup('file', ssh_public_key_file) }}' /home/{{ new_user_name }}/.ssh/authorized_keys"
+  register: key_check
+  ignore_errors: true
+# - name: Check if the {{ ssh_public_key_file }} is already present
+#   command: "grep -Fxq '{{ lookup('file', ssh_public_key_file) }}' /home/{{ new_user_name }}/.ssh/authorized_keys"
+#   register: key_check
+#   ignore_errors: true
+#   failed_when: key_check.rc not in [0, 1]

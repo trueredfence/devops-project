@@ -1,0 +1,52 @@
+---
+- name: Ensure .ssh directory exists for {{ new_user_details.name }}
+  file:
+    path: "/home/{{ new_user_details.name }}/.ssh"
+    state: directory
+    owner: "{{ new_user_details.name }}"
+    group: "{{ new_user_details.name }}"
+    mode: "0700"
+
+# - name: Check if infra key {{ new_user_details.key }}.pub is already present
+#   command: "grep -Fxq '{{ lookup('file', infra_key_path) }}' /home/{{ new_user_details.name }}/.ssh/authorized_keys"
+#   register: infra_key_check
+#   ignore_errors: true
+#   #failed_when: infra_key_check.rc not in [0, 1]
+
+# # add and update ssh key for the selected user
+# - name: Install infra {{ new_user_details.key }}.pub key file
+#   ansible.posix.authorized_key:
+#     user: "{{ new_user_details.name }}"
+#     state: present
+#     key: "{{ lookup('file', infra_key_path) }}"
+#     # when: infra_key_check.rc == 1
+#   register: authorized_key_result
+#   when: infra_key_check.rc != 0
+
+- name: Check if the {{ new_user_details.key }} is already present
+  command: "grep -Fxq '{{ lookup('file', new_user_details.key) }}' /home/{{ new_user_details.name }}/.ssh/authorized_keys"
+  register: key_check
+  ignore_errors: true
+  # failed_when: infra_key_check.rc not in [0, 1]
+
+# add and update ssh key for the selected user
+- name: Install {{ new_user_details.key }} key file
+  ansible.posix.authorized_key:
+    user: "{{ new_user_details.name }}"
+    state: present
+    key: "{{ lookup('file', new_user_details.key) }}"
+  register: authorized_key_result
+  when: key_check.rc != 0
+
+- name: Debug the result of the authorized_key task
+  debug:
+    msg: "The SSH key {{ new_user_details.key }} successfully added to authorized_keys."
+  when: authorized_key_result is succeeded
+
+# - name: Add {{ new_user_details.name }} user to sudoers with password prompt (optional)
+#   ansible.builtin.lineinfile:
+#     path: /etc/sudoers
+#     line: '{{ new_user_details.name }} ALL=(ALL) NOPASSWD: /usr/bin/systemctl start httpd, /usr/bin/systemctl stop httpd, /usr/bin/systemctl restart httpd'
+#     state: present
+#     validate: "visudo -cf %s"
+#   when: new_user_details.name != 'infra'

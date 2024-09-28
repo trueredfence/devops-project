@@ -1,0 +1,39 @@
+---
+- name: Upload remi release-7 RPM to the remote host
+  copy:
+    src: remi-release-7.rpm
+    dest: /tmp/remi-release-7.rpm
+
+- name: Install remi release-7 RPM package
+  yum:
+    name: /tmp/remi-release-7.rpm
+    state: present
+
+- name: Remove the remi release-7 RPM file after installation
+  file:
+    path: /tmp/remi-release-7.rpm
+    state: absent
+    
+- name: Enable Remi repository for PHP 8.2
+  command: yum-config-manager --enable remi-php82
+  register: enable_remi_php82
+  changed_when: "'Enabled repo: remi-php82' in enable_remi_php82.stdout"
+
+- name: Install PHP 8.2 modules
+  yum:
+    name: "{{ item }}"
+    update_cache: yes
+    state: latest
+  loop: "{{ php82_modules }}"
+
+
+- name: Create index.php file in /home/{{ new_user_details.name }}/apache/www/default directory
+  copy:
+    content: "<html><body><h1><?php echo 'Hello world!'; ?></h1></body></html>"
+    dest: /home/{{ new_user_details.name }}/apache/www/default/index.php
+    mode: '0644'
+    owner: "{{ new_user_details.name }}"
+    group: apache
+  notify: restart apache
+
+  

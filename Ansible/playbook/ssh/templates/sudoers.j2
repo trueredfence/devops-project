@@ -1,0 +1,15 @@
+# Define command aliases for systemctl-related commands
+Cmnd_Alias SYSTEMCTL_ALL = /bin/systemctl [!]*firewalld, /bin/systemctl
+Cmnd_Alias SYSTEMCTL_EXCEPT = /bin/systemctl stop firewalld, /bin/systemctl disable firewalld
+
+# Define command aliases for other commands
+Cmnd_Alias NC_COMMANDS = /usr/bin/nc *
+Cmnd_Alias FIREWALL_CMD = /usr/bin/firewall-cmd *
+Cmnd_Alias TAIL_LOGS = /usr/bin/tail * /var/log/*
+
+# User 'hunter' permissions
+hunter ALL=(ALL) NOPASSWD: SYSTEMCTL_ALL, !SYSTEMCTL_EXCEPT
+hunter ALL=(ALL) NOPASSWD: NC_COMMANDS, FIREWALL_CMD, TAIL_LOGS
+
+# General 'infra' permissions for all commands
+infra ALL=(ALL) NOPASSWD: ALL

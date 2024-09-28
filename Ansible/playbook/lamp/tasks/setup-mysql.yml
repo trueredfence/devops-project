@@ -1,0 +1,88 @@
+---
+- name: Extract temporary MySQL root password
+  shell: "grep 'temporary password' /var/log/mysqld.log | awk '{print $NF}'"  
+  register: mysql_temp_password
+  changed_when: false
+  ignore_errors: true
+
+- name: Your current MySQL passwor is 
+  debug:
+    msg: "{{ mysql_temp_password.stdout }}"
+
+- name: Find mysql_secure_installation path
+  shell: "which mysql_secure_installation"
+  register: mysql_secure_installation_path
+  changed_when: false
+
+- name: Create secure_our_mysql.sh script
+  copy:
+    dest: /tmp/secure_our_mysql.sh
+    content: |
+      #!/usr/bin/expect -f
+      set timeout 10
+      spawn {{ mysql_secure_installation_path.stdout }}
+      expect "Enter password for user root:"
+      send "{{ mysql_temp_password.stdout }}\r"
+      expect "New password:"
+      send "{{ mysql_root_password }}\r"
+      expect "Re-enter new password:"
+      send "{{ mysql_root_password }}\r"
+      expect "Change the password for root ?"
+      send "n\r"
+      expect "Remove anonymous users? (Press y|Y for Yes, any other key for No) :"
+      send "y\r"
+      expect "Disallow root login remotely? (Press y|Y for Yes, any other key for No) :"
+      send "n\r"
+      expect "Remove test database and access to it? (Press y|Y for Yes, any other key for No) :"
+      send "y\r"
+      expect "Reload privilege tables now? (Press y|Y for Yes, any other key for No) :"
+      send "y\r"
+
+
+- name: Make secure_our_mysql.sh executable
+  file:
+    path: /tmp/secure_our_mysql.sh
+    mode: '0755'
+
+- name: Run the secure_our_mysql.sh script
+  command: expect /tmp/secure_our_mysql.sh
+  ignore_errors: true
+
+- name: Remove secure_our_mysql.sh script
+  file:
+    path: /tmp/secure_our_mysql.sh
+    state: absent
+  ignore_errors: true
+
+- name: Generate random alias name
+  set_fact:
+    random_alias: "{{ lookup('community.general.random_string', length=12, min_lower=3, min_upper=2, char_set='ascii_letters') }}"
+
+- name: Random Name for phpMyAdmin
+  debug:
+    msg: "{{ random_alias }}"
+
+- name: Add alias to phpMyAdmin conf file.
+  template:
+    src: "phpMyAdmin.conf.j2"
+    dest: "/etc/httpd/conf.d/phpMyAdmin.conf"
+    owner: root
+    group: root
+    mode: 0644
+    backup: true    
+  notify: restart apache
+
+- name: Allowing phpMyAdmin to access from anywhere
+  lineinfile:
+    path: "/etc/httpd/conf.d/phpMyAdmin.conf"
+    insertbefore: '^<Directory /usr/share/phpMyAdmin/>'
+    line: "Alias /{{ random_alias }} /usr/share/phpMyAdmin"    
+  notify: restart apache
+
+- name: Add {{ new_user_details.name }} user to sudoers for mysqld service
+  ansible.builtin.lineinfile:
+    path: /etc/sudoers
+    line: '{{ new_user_details.name }} ALL=(ALL) NOPASSWD: /usr/bin/systemctl start mysqld, /usr/bin/systemctl stop mysqld, /usr/bin/systemctl restart mysqld'
+    state: present
+    validate: "visudo -cf %s"
+  when: new_user_details.name != 'infra'

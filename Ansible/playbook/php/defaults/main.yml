@@ -1,0 +1,85 @@
+---
+php_memory_limit: 256M
+php_max_input_vars: 3001
+# defaults file for php
+# -------------------------
+# PHP 8.0
+# -------------------------
+php80_modules_default:
+  - php8.0-common
+  - php8.0-bcmath
+  - php8.0-curl
+  - php8.0-fpm
+  - php8.0-gd
+  - php8.0-igbinary
+  - php8.0-mbstring
+  - php8.0-mysql
+  - php8.0-pgsql
+  - php8.0-oauth
+  - php8.0-opcache
+  - php8.0-redis
+  - php8.0-soap
+  - php8.0-xml
+  - php8.0-xmlrpc
+  - php8.0-zip
+php80_add_modules: []
+php80_modules: "{{ php80_modules_default + php80_add_modules }}"
+# defaults file for php
+# -------------------------
+# PHP 8.2
+# -------------------------
+php82_modules_default:
+  - php8.2-common
+  - php8.2-bcmath
+  - php8.2-curl
+  - php8.2-fpm
+  - php8.2-gd
+  - php8.2-igbinary
+  - php8.2-mbstring
+  - php8.2-mysql
+  - php8.2-pgsql
+  - php8.2-oauth
+  - php8.2-opcache
+  - php8.2-redis
+  - php8.2-soap
+  - php8.2-xml
+  - php8.2-xmlrpc
+  - php8.2-zip
+php82_add_modules: []
+php82_modules: "{{ php82_modules_default + php82_add_modules }}"
+# -------------------------
+# PHP >= 8.2
+#
+# The list of "php_default_module_name_suffixes" will be turned into:
+# [ 'php8.2-common', 'php8.2-bcmath', ...etc ]
+# according to the list of `php_versions`.
+#
+# The `php_add_modules` list is so the user to append the default list wtih, without having to redefine the whole list.
+# Modules specified in php_add_modules
+#
+# @TODO: Write php_omit_modules to prevent arbitrary modules in the default list from getting installed.
+#
+# The `php_modules` list is intentionally not defined here. If your playbook sets this, the role will
+# not generate a list of modules to install; the list of php_default_module_name_suffixes will be ignored.
+# -------------------------
+php_default_module_name_suffixes:
+  - common
+  - bcmath
+  - cli
+  - curl
+  - fpm
+  - gd
+  - igbinary
+  - mbstring
+  - mysql
+  - pgsql
+  - oauth
+  - opcache
+  - redis
+  - soap
+  - xml
+  - xmlrpc
+  - zip
+php_add_modules: []
+## php_modules: []  # Intentionally commented out.
+php_use_legacy_module_lists: true

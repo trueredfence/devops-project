@@ -1,0 +1,6 @@
+---
+# handlers file for mysql
+- name: restart-mysql # name must be similar to notify task
+  service:
+    name: mysql
+    state: restarted

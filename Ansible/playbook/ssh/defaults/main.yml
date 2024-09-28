@@ -1,0 +1,73 @@
+---
+# defaults file for SSh Config
+# -------------------------
+# Default config details
+# -------------------------
+user_details: []
+ssh_role_path: "ssh"
+chosen_ssh_port: "{{ (1179, 7119) | random if ansible_port == '22' else ansible_port }}"
+login_user_name: "root"
+# new_user_name: "hunter"
+new_user_details:
+  name: "hunter"
+  key: ""
+default_infra_user: "infra"
+default_user_key: "infra"
+infra_public_key_name: "infra.pub"    
+password_output_file: "./password.csv"
+centos_base_repo: "CentOS-Base.repo"
+centos_base_repo_template: "CentOS-Base.repo.j2"
+
+# defaults file for Ansible
+# -------------------------
+# Ansible
+# -------------------------
+ansible_user: "{{ login_user_name }}"
+ansible_ssh_common_args: "-o StrictHostKeyChecking=no"
+ansible_private_key_file: "{{ ssh_role_path }}/files/{{ default_user_key }}"
+# infra_key_path: "{{ ssh_role_path }}/files/{{ infra_key_name }}.pub"
+
+
+# defaults file for SSHD Conf
+# -------------------------
+# SSD conf
+# -------------------------
+# new_key_path: "{{ ssh_role_path }}/files/{{ new_user_details.key }}.pub"
+sshd_conf_file: "sshd_config"
+sshd_conf_file_template: "sshd_config.j2"
+
+
+# defaults file for Task 
+# -------------------------
+# Default Variable based on task all are true
+# control task with these variables
+# -------------------------
+create_infra_user: true
+update_vps: true
+enable_zshell: false
+create_user: true
+add_ssh_key: true
+harden_ssh: true
+disable_pass_login: true
+change_password_current_user: true
+disable_root_ssh: true
+
+# defaults file for Packages required on vps
+# -------------------------
+# Default package list
+# -------------------------
+default_package_modules:
+  - vim
+  - net-tools
+  - yum-utils
+  - epel-release
+  - elrepo-release
+  - unzip
+  - tar
+  - wget
+  - rsync
+  - firewalld
+  - expect
+  - policycoreutils-python
+  - rsync
+  # - libselinux-python

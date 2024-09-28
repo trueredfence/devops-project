@@ -1,0 +1,4 @@
+---
+# vars file for php
+php_max_input_vars: 250
+php_memory_limit: 250

@@ -1,0 +1,28 @@
+---
+# Create root directory for web application
+- name: Create document root for {{ app_name }}
+  file:
+    path: "/var/www/{{ app_name }}" #create this folder (directory)
+    state: directory
+    owner: www-data
+    group: www-data
+    mode: "0755"
+
+# Configure Virtualhost
+- name: Set up virtualHost for {{ app_name }}
+  template:
+    src: "templates/apacheconf.j2"
+    dest: "/etc/apache2/sites-available/{{ app_name }}.conf"
+
+# Enable site
+- name: Enable site {{ domain_name }}
+  command: a2ensite {{ app_name }}.conf
+# Firewall
+- name: "UFW firewall allow HTTP on port {{ http_port}} & {{ https_port }}"
+  ufw:
+    rule: allow
+    port: "{{ item }}"
+    proto: tcp
+  loop:
+    - "{{ http_port }}"
+    - "{{ https_port }}"

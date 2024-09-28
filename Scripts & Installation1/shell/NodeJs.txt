@@ -1,0 +1,156 @@
+Install NODE JS and APP
+
+Installing Node.js
+=================================
+curl -L -o nodesource_setup.sh https://rpm.nodesource.com/setup_10.x
+sudo -E bash nodesource_setup.sh
+sudo yum clean all
+sudo yum makecache fast
+sudo yum install -y gcc-c++ make
+sudo yum install -y nodejs
+
+------ FOR YARN PACKAGE ------
+sudo npm install yarn -g
+
+above command install node and npm
+
+
+
+This is not working
+---------- Install Node.js v11.x ---------- 
+curl -sL https://rpm.nodesource.com/setup_11.x | bash -
+
+---------- Install Node.js v10.x ----------
+curl -sL https://rpm.nodesource.com/setup_10.x | bash -
+
+
+
+
+
+PM2
+==================================
+sudo npm install pm2@latest -g
+
+
+
+sudo pm2 start /var/www/html/app/server.js
+sudo pm2 start /var/www/html/adminside/server.js
+
+---------- TO MAKE PROCESS PERMANENT -----------
+sudo pm2 startup systemd (Setup startup process)
+pm2 save
+
+Run this command to run your application as a service by typing the following:
+
+sudo env PATH=$PATH:/usr/local/bin pm2 startup -u safeuser
+
+
+Setting Up an Nginx Reverse Proxy Server
+============================================
+sudo yum install epel-release
+sudo yum install nginx
+sudo systemctl start nginx
+sudo systemctl enable nginx
+sudo setsebool -P httpd_can_network_relay on
+
+------------- Disbale Nginx as web server ---------
+change in nginx.conf
+
+
+
+------------ Config ---------------
+vim /etc/nginx/conf.d/client.conf 
+
+server {
+      	listen 80;
+      	server_name  nginxserver.com;
+
+	 access_log  off;
+	 error_log off;
+
+	location / {
+	  proxy_pass              http://remotevpscnc.com/;
+	  proxy_set_header        X-Real-IP       $remote_addr;
+	  proxy_set_header        Host  $host;
+	  proxy_redirect          off;
+	  proxy_set_header        X-Forwarded-For $proxy_add_x_forwarded_for;
+	  proxy_connect_timeout   90;
+	  proxy_send_timeout      90;
+	  proxy_read_timeout      90;
+	  client_max_body_size    10m;
+	  client_body_buffer_size 128k;
+	  proxy_buffer_size       4k;
+	  proxy_buffers           4 32k;
+	  proxy_busy_buffers_size 64k;
+	}
+}
+
+
+----------------------------------------------
+# Verify conf file
+sudo nginx -t
+
+sudo firewall-cmd --permanent --zone=public --add-service=http 
+sudo firewall-cmd --permanent --zone=public --add-service=https
+sudo firewall-cmd --reload
+
+
+----------------INSTALL MONGO ------------------
+
+First create mongodb repo file
+
+yum install mongodb-org
+systemctl start mongod
+systemctl enable mongod
+
+-------------- login account ----------------------
+
+use admin;
+db.createUser({
+      user: "xray",
+      pwd: "Admin@4680",
+      roles: [
+                { role: "userAdminAnyDatabase", db: "admin" },
+                { role: "readWriteAnyDatabase", db: "admin" },
+                { role: "dbAdminAnyDatabase",   db: "admin" }
+             ]
+});
+
+
+// Normal User
+use xray
+
+db.createUser({
+      user: "xrayuser",
+      pwd: "Password",
+      roles: [
+                { role: "userAdmin", db: "xray" },
+                { role: "dbAdmin",   db: "xray" },
+                { role: "readWrite", db: "xray" }
+             ]
+  });
+
+then check login
+=====================
+mongo -u xrayuser -p Password 192.168.56.102/xray
+
+vim /etc/mongod.conf
+In this file add the following lines:
+security:
+    authorization: 'enabled'
+
+
+bindip in /etc/mongdb.conf to 127.0.0.1,192.168.56.102
+mongoimport -u xrayuser -p Password --db xray --collection users --file /var/www/html/app/user.json
+
+
+
+
+
+------------------------ Now Run After Bind----------------------
+
+pm2 start server/index.js --name xray-backend
+
+pm2 reload all
+
+pm2 monit

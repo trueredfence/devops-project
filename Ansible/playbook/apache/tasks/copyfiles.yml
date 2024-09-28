@@ -1,0 +1,12 @@
+---
+- name: Move Web-Application files to remote
+  synchronize:
+    src: "files/app/" #Contains all directory
+    dest: "/var/www/{{ app_name }}/"
+    delete: yes
+
+#Copy template
+- name: Copy your index file
+  template:
+    src: "files/app/index.html" #this index.html must be at files location
+    dest: "/var/www/{{ app_name }}/index.html"

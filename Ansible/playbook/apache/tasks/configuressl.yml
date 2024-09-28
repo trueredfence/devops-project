@@ -1,0 +1,60 @@
+---
+- block:
+    # Create directory for SSL
+    - name: Create SSL Directory for {{ domain_name }}
+      file:
+        path: "{{ item }}"
+        state: directory
+      loop:
+        - "/etc/ssl/{{ domain_name }}"
+        - "/etc/ssl/{{ domain_name }}"
+
+    # Generate Private Key, CSR, and Install Self-Signed Certificates
+    - block:
+        # Generate Pvt key
+        - name: Generate an OpenSSL private key with a different size (2048 bits)
+          community.crypto.openssl_privatekey:
+            path: "/etc/ssl/{{ domain_name }}/{{ tls_key_file }}"
+            size: 2048
+
+        # Generate CSR Request
+        - name: Generate an OpenSSL CSR for {{ domain_name }}
+          community.crypto.openssl_csr:
+            path: "{{ csr_path }}"
+            privatekey_path: "/etc/ssl/{{ domain_name }}/{{ tls_key_file }}"
+            common_name: "{{ domain_name }}"
+
+        # Install Self-Signed Certificates
+        - name: Generate self-signed SSL certificate for {{ domain_name }}
+          openssl_certificate:
+            path: "/etc/ssl/{{ domain_name }}/{{ tls_cert_file }}"
+            privatekey_path: "/etc/ssl/{{ domain_name }}/{{ tls_key_file }}"
+            csr_path: "{{ csr_path }}"
+            state: present
+            provider: selfsigned
+      when:
+        - (self_signed | default(False) | bool)
+
+    # Copy certificate and key from the local machine
+    - name: Move SSL certificates
+      synchronize:
+        src: "{{ item.src }}"
+        dest: "{{ item.dest }}"
+        delete: yes
+      loop:
+        - {
+            src: "files/ssl/certs/{{ tls_cert_file }}",
+            dest: "/etc/ssl/{{ domain_name }}/{{ tls_cert_file }}",
+          }
+        - {
+            src: "files/ssl/private/{{ tls_key_file }}",
+            dest: "/etc/ssl/{{ domain_name }}/{{ tls_key_file }}",
+          }
+      when: not self_signed | default(True) | bool
+
+    # Enable SSL module
+    - name: Enable SSL module
+      command: a2enmod ssl
+      notify: restart-apache
+
+  when: ssl | default(False) | bool

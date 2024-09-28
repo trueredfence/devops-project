@@ -1,0 +1,92 @@
+---
+# defaults file for Apache
+# -------------------------
+# Apache
+# -------------------------
+apache_service: httpd
+apache_daemon: httpd
+apache_daemon_path: /usr/sbin/
+apache_server_root: /etc/httpd
+apache_conf_path: /etc/httpd/conf.d
+apache_state: started
+apache_enabled: true
+apache_restart_state: restarted
+
+apache_vhosts_filename: "vhosts.conf"
+apache_vhosts_template: "vhosts.conf.j2"
+
+apache_packages:
+  - httpd
+  - httpd-devel
+  - mod_ssl
+  - openssh
+  - policycoreutils-python
+
+services:
+  - http
+  - https
+
+apache_dir: 
+  - data
+  # - apache
+  - apache/conf.d
+  - apache/www/default
+  - apache/logs  
+
+# defaults file for php
+# -------------------------
+# PHP 8.2
+# -------------------------
+php82_modules_default:
+  - php
+  - php82-php-pecl-zip    
+  - php82-php-pgsql
+  - php82-php-pecl-mysql
+  - php82-php-pecl-mcrypt
+  - php82-php-mbstring                                                             
+  - php82-php-mysqlnd                                           
+  - php82-php-pdo                                                                  
+  - php82-php-pdo-dblib                                                            
+  - php82-php-pdo-firebird
+php82_add_modules: []
+php82_modules: "{{ php82_modules_default + php82_add_modules }}"
+php_ini_template: "php.ini.j2"
+php_ini_filename: "php.ini"
+
+# defaults file for Mysql
+# -------------------------
+# Mysql Installation
+# -------------------------
+mysql_service: "mysqld"
+mysql_modules:
+  - mysql-server
+  # - python3-pymysql
+  - python36-PyMySQL
+  - python2-PyMySQL
+  - phpmyadmin
+mysql_root_password: "HGet$^%2(826lkSrwNbdFg2#%"
+mysql_state: started
+mysql_enabled: true
+mysql_restart_state: restarted
+mysql_socket_path: "/var/lib/mysql/mysql.sock"
+
+
+# defaults file for ansible
+# -------------------------
+# Default ansible variables
+# -------------------------
+lamp_role_path: "lamp"
+login_user_name: "root"
+infra_key_name: "infra"    
+
+ansible_user: "{{ login_user_name }}"
+ansible_ssh_common_args: "-o StrictHostKeyChecking=no"
+ansible_private_key_file: "{{ lamp_role_path }}/files/{{ infra_key_name }}"
+
+# defaults 
+# -------------------------
+# Requirement if not play with initial script
+# -------------------------
+new_user_details:
+  name: "hunter"
+  key: ""

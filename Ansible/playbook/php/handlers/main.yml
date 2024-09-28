@@ -1,0 +1,8 @@
+---
+# handlers file for apache
+- name: restart-php8.2-fpm
+  service: name=php8.2-fpm state=restarted
+- name: restart-apache # name must be similar to notify task
+  service:
+    name: apache2
+    state: restarted

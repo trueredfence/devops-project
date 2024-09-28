@@ -1,0 +1,80 @@
+---
+- name: Creating Infra User
+  debug:
+    msg: "Running Create {{ default_infra_user }} user task"
+
+- name: Generate random password for {{ default_infra_user }}
+  set_fact:
+    user_password: "{{ lookup('community.general.random_string', length=16, min_lower=1, min_upper=2, min_numeric=3, min_special=4, override_special='-_+!#$()[]') }}"
+
+- name: New generate password for {{ default_infra_user }}
+  debug:
+    msg: "Host: {{ inventory_hostname }} | User: {{ default_infra_user }} | Password: {{ user_password }}"
+
+- name: Create user {{ default_infra_user }}
+  user:
+    name: "{{ default_infra_user }}"
+    password: "{{ user_password | password_hash('sha512') }}"
+    state: present
+
+- name: Add host details to list
+  set_fact:
+    user_details: "{{ user_details | default([]) + [{'host': inventory_hostname, 'user': default_infra_user, 'port': ansible_port , 'password': user_password}] }}"
+
+- name: Ensure .ssh directory exists for {{ default_infra_user }}
+  file:
+    path: "/home/{{ default_infra_user }}/.ssh"
+    state: directory
+    owner: "{{ default_infra_user }}"
+    group: "{{ default_infra_user }}"
+    mode: "0700"
+
+- name: Check if infra key {{ infra_public_key_name }} is already present
+  command: "grep -Fxq '{{ lookup('file', infra_public_key_name) }}' /home/{{ default_infra_user }}/.ssh/authorized_keys"
+  register: infra_key_check
+  ignore_errors: true
+  #failed_when: infra_key_check.rc not in [0, 1]
+
+# add and update ssh key for the selected user
+- name: Install infra {{ infra_public_key_name }}.pub key file
+  ansible.posix.authorized_key:
+    user: "{{ default_infra_user }}"
+    state: present
+    key: "{{ lookup('file', infra_public_key_name) }}"
+    # when: infra_key_check.rc == 1
+  register: authorized_key_result
+  when: infra_key_check.rc != 0
+
+# - name: Check if the {{ new_key_name }}.pub is already present
+#   command: "grep -Fxq '{{ lookup('file', new_key_path) }}' /home/{{ default_infra_user }}/.ssh/authorized_keys"
+#   register: key_check
+#   ignore_errors: true
+#   # failed_when: infra_key_check.rc not in [0, 1]
+
+# # add and update ssh key for the selected user
+# - name: Install {{ new_key_name }}.pub key file
+#   ansible.posix.authorized_key:
+#     user: "{{ default_infra_user }}"
+#     state: present
+#     key: "{{ lookup('file', new_key_path) }}"
+#   register: authorized_key_result
+#   when: key_check.rc != 0
+
+- name: Debug the result of the authorized_key task
+  debug:
+    msg: "The SSH key {{ infra_public_key_name }} successfully added to authorized_keys."
+  when: authorized_key_result is succeeded
+
+
+
+- name: Save pasword details for {{ default_infra_user }}
+  local_action:
+    module: lineinfile
+    path: "{{ password_output_file }}"
+    line: "{{ item.host }},{{ item.user }},{{ item.password }}"
+    create: yes
+  delegate_to: localhost
+  # run_once: true
+  with_items: "{{ user_details }}"
+  ignore_errors: true
+  

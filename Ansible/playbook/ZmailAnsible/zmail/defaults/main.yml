@@ -1,0 +1,66 @@
+---
+install_apache2: true
+install_mysql: true
+install_php: true
+configure_vhost: true
+# defaults file for zmail
+apache_mods_enabled:
+  - rewrite
+  - ssl
+  - php8.2 # apahce php not with fpm
+apache_port: 80
+apache_port_ssl: 443
+apache_listen_ip: "*"
+apache_remove_default_vhost: true
+apache_create_vhosts_only: false
+apache_default_vhost_filename: 000-default.conf
+
+apache_conf_file:
+  allow_override: "All"
+  options: "-Indexes -Includes -ExecCGI -FollowSymLinks +SymLinksIfOwnerMatch"
+  ssl_protocol: "All -SSLv2 -SSLv3"
+  ssl_cipher_suite: "AES256+EECDH:AES256+EDH"
+  directory_index: "index.html index.php index.shtml"
+
+mysql_root_password: "admin4680"
+set_root_password: true
+remove_test_db: true
+remove_anonymous_user: true
+
+php_ini_file: "/etc/php/8.2/fpm/php.ini"
+php_ini_settings:
+  - name: upload_max_filesize
+    value: 256M
+  - name: post_max_size
+    value: 50M
+  - name: memory_limit
+    value: 256M
+  - name: max_input_vars
+    value: 3001
+
+# defaults file for php
+# -------------------------
+# PHP 8.2
+# -------------------------
+php82_modules_default:
+  - php8.2
+  - php8.2-common
+  - php8.2-bcmath
+  - php8.2-curl
+  - php8.2-fpm
+  - php8.2-gd
+  - php8.2-igbinary
+  - php8.2-mbstring
+  - php8.2-mysql
+  - php8.2-pgsql
+  - php8.2-oauth
+  - php8.2-opcache
+  - php8.2-redis
+  - php8.2-soap
+  - php8.2-xml
+  - php8.2-xmlrpc
+  - php8.2-zip
+  - libapache2-mod-php8.2 # for apache module else use fpm
+
+php82_add_modules: []
+php82_modules: "{{ php82_modules_default + php82_add_modules }}"

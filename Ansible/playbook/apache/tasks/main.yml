@@ -1,0 +1,10 @@
+---
+# tasks file for apache
+- import_tasks: install.yml
+- import_tasks: configure.yml
+- import_tasks: configuressl.yml
+  when:
+    - ssl | default(True)
+- import_tasks: copyfiles.yml
+  notify: restart-apache
+# the order of above file matters. if you keep in wrong order, it will fail.

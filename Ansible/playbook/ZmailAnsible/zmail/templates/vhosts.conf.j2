@@ -1,0 +1,41 @@
+{# Set up VirtualHosts #}
+{% for vhost in apache_vhost %}
+<VirtualHost {{ apache_listen_ip }}:{% if vhost.is_ssl %}{{ apache_port_ssl }}{% else %}{{ apache_port }}{% endif %}>
+  ServerName {{ vhost.servername }}
+{% if vhost.serveralias is defined %}
+  ServerAlias {{ vhost.serveralias }}
+{% endif %}
+{% if vhost.documentroot is defined %}
+  DocumentRoot {{ vhost.documentroot }}
+{% endif %}
+{% if vhost.is_ssl %}
+  SSLEngine on
+  SSLCipherSuite {{ apache_conf_file.ssl_cipher_suite }}
+  SSLProtocol {{ apache_conf_file.ssl_protocol }}
+  SSLHonorCipherOrder On
+  SSLCompression off
+  SSLCertificateFile {{ vhost.certificate_file }}
+  SSLCertificateKeyFile {{ vhost.certificate_key_file }}
+  {% if vhost.certificate_chain_file is defined %}
+    SSLCertificateChainFile {{ vhost.certificate_chain_file }}
+  {% endif %}
+{% endif %}
+{% if vhost.serveradmin is defined %}
+  ServerAdmin {{ vhost.serveradmin }}
+{% endif %}
+{% if vhost.documentroot is defined %}
+  <Directory {{ vhost.documentroot }}>
+    DirectoryIndex {{ apache_conf_file.directory_index }}     
+    AllowOverride {{ vhost.allow_override | default(apache_conf_file.allow_override) }}
+    Options {{ vhost.options | default(apache_conf_file.options) }}
+    Require all granted
+  </Directory>
+{% endif %}
+{% if vhost.extra_parameters is defined %}
+{{ vhost.extra_parameters | indent(width=2, first=True) }}
+{% endif %}
+</VirtualHost>
+
+{% endfor %}
+
+

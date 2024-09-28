@@ -1,0 +1,33 @@
+---
+- name: Include VHost variables.
+  include_vars: vhost.yml
+
+- name: Update apt package cache
+  apt: update_cache=yes cache_valid_time=3600
+
+- block:
+    - name: "Install Apache2"
+      include_tasks: setup_apache.yml
+  when: install_apache2 | bool
+
+- block:
+    - name: "Install mysql"
+      include_tasks: setup_mysql.yml
+    - name: "Confi mysql"
+      include_tasks: config_mysql.yml
+  when: install_mysql | bool
+
+- block:
+    - name: "Install PHP"
+      include_tasks: setup_php.yml
+    - name: "Config PHP"
+      include_tasks: config_php.yml
+    - name: "Install pma"
+      include_tasks: setup_pma.yml
+    - name: "Confi pma"
+      include_tasks: config_pma.yml
+  when: install_php | bool
+- block:
+    - name: "Config Vhost"
+      include_tasks: config_apache.yml
+  when: configure_vhost | bool

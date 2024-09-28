@@ -1,0 +1,61 @@
+---
+- name: Install zsh
+  yum:
+    name: zsh
+    state: present
+
+- name: Download kalilinuxterminal repository
+  command: wget https://github.com/trueredfence/kalilinuxterminal/archive/refs/heads/main.zip -O /tmp/kalilinuxterminal.zip
+  args:
+    creates: /tmp/kalilinuxterminal.zip
+
+- name: Unzip kalilinuxterminal repository
+  unarchive:
+    src: /tmp/kalilinuxterminal.zip
+    dest: /tmp/
+    remote_src: yes
+
+- name: Copy zsh-autosuggestions to /usr/share
+  copy:
+    src: /tmp/kalilinuxterminal-main/zsh-autosuggestions
+    dest: /usr/share/
+    mode: "0755"
+    owner: root
+    group: root
+    remote_src: yes
+
+- name: Copy zsh-syntax-highlighting to /usr/share
+  copy:
+    src: /tmp/kalilinuxterminal-main/zsh-syntax-highlighting
+    dest: /usr/share/
+    mode: "0755"
+    owner: root
+    group: root
+    remote_src: yes
+
+- name: Copy .zshrc to home directory
+  copy:
+    src: /tmp/kalilinuxterminal-main/.zshrc
+    dest: /root/.zshrc
+    mode: "0644"
+    owner: root
+    group: root
+    remote_src: yes
+
+- name: Find path to zsh
+  command: type -a zsh
+  register: zsh_path
+  ignore_errors: true
+
+- name: Change default shell to zsh
+  command: chsh -s /bin/zsh
+  become: true
+  become_user: "{{ ansible_user }}"
+
+- name: Verify shell change
+  command: grep "^${USER}" /etc/passwd
+  register: shell_change
+
+- name: Debug shell change
+  debug:
+    var: shell_change.stdout

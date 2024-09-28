@@ -1,0 +1,6 @@
+---
+# vars file for mysql
+mysql_root_password: "admin4680"
+set_root_password: true
+remove_test_db: true
+remove_anonymous_user: true

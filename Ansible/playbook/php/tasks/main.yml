@@ -1,0 +1,5 @@
+---
+# tasks file for php
+- import_tasks: install.yml
+- import_tasks: configure.yml
+  notify: restart-apache

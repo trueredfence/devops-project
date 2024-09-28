@@ -1,0 +1,336 @@
+MongoDb
+++++++++++++++++
+show collections - Get Collection 
+show tables
+db.getCollectionNames()
+-----------------------------------
+db.getUsers() - Selected database user list
+db.getUser("crcadmin")
+-----------------------------------
+db.getRole( "readWrite", { showPrivileges: true } )
+db.updateUser("crcadmin", {roles :[{role:"crcAdmin", db:"crc"}]}); -- Update Roles
+----------------------------------------------
+create Role
+db.createRole(
+   {
+     role: "crcAdmin", 
+     privileges: [       
+       { resource: { db: "crc", collection: "" }, actions: [ "collMod" ] }
+     ],
+     roles: [
+       { role: "readWrite", db: "crc" },
+       { role: "userAdmin", db: "crc" }
+      ]
+   },
+   { w: "majority" , wtimeout: 5000 }
+)
+-------------------------------------------
+db.address.drop(); - drop address collection
+db.contacts.insert( { phone: "1233", email: "acndeef", staus:"Incomplete" } ) -- insert in contact collection
+
+
+db.targets.find({'contact.email':'abc.com'})
+
+-------------------------------
+Create Collection with validation
+
+db.createCollection( "contacts",
+   { validator: { $or:
+      [
+         { phone: { $type: "string" } },
+         { email: { $regex: /@mongodb\.com$/ } },
+         { status: { $in: [ "Unknown", "Incomplete" ] } }
+      ]
+   }
+} )
+
+
+Terminal
+
+//add user
+use admin;
+db.createUser({user:"tps21", pwd:"Admin4680", roles:[{role:"userAdminAnyDatabase", db:"admin"}]})
+exit
+vi /etc/mongodb.conf
+security:
+  authorization: enabled
+systemctl restart mongodb
+
+//Login with Username and pwd
+mongo -u tps21 -p test1234 --authenticationDatabase admin
+
+mongo -u xrayuser -p Password --authenticationDatabase xray
+//Normal user (original User )
+use xray
+db.createUser({user:"xray", pwd:"test1234", roles:[{role:"readWrite", db:"xray"}]})
+
+
+additionalProperties: false, ( remove if you need to add additional row in table later)
+-----------------------------------------------
+
+db.createCollection( "user" , { 
+   validator: { $jsonSchema: { 
+      bsonType: "object",      
+      required: [ "u_name" ], 
+      properties: {
+         _id : {
+              bsonType: "objectId" }, 
+         u_name: { 
+            bsonType: "string",
+            description: "user name" },
+         alias: { 
+            bsonType: "string",
+            description: "user name" },   
+         pwd: { 
+            bsonType: "string", 
+            description: "password of user" },
+         salt: { 
+            bsonType: "string", 
+            description: "salt for user" },
+         c_dtg: { 
+            bsonType: "date", 
+            description: "Creation date" },
+         l_dtg: { 
+            bsonType: "date", 
+            description: "last login time" },
+         l_activity: {
+            bsonType: "date",
+            description: "last activity time" },   
+         l_ip: { 
+            bsonType: "string", 
+            description: "last login ip" },
+         session: { 
+            bsonType: "string", 
+            description: "session id" },  
+         status: { 
+            enum: [ "0", "1", "2" ],             
+            description: "0 Deactive 1 Active 2 tmpDeactive" },
+         exm: { 
+            enum: [ "0", "1" ],             
+            description: "Exampted DS 0 Not 1 Exampted" },
+         exm_ds: { 
+            enum: [ "0", "1" ],             
+            description: "Exampted DS 0 Not 1 Exampted" },
+         exm_mail: { 
+            enum: [ "0", "1" ],           
+            description: "Exampted DS 0 Not 1 Exampted" },
+         exm_sat: { 
+            enum: [ "0", "1" ], 
+            description: "Exampted DS 0 Not 1 Exampted" },
+         exm_reason: { 
+            bsonType: "string", 
+            description: "Why exampted" },    
+         last_ds: { 
+            bsonType: "date", 
+            description: "last login time" },
+         last_mail: { 
+            bsonType: "date", 
+            description: "last login time" },
+         last_sat: { 
+            bsonType: "date", 
+            description: "last login time" },                   
+         gp_id: { 
+            bsonType: "int", 
+            description: "user belong to group" },
+         gp_admin: {
+            bsonType: "array", 
+            description: "Section admin if any" },
+         permission: { 
+            bsonType: "array", 
+            description: "permission/rights to user" }   
+                 
+      }
+   }
+}})
+
+db.user.find({l_activiy:{$lte: new Date(ISODate().getTime() - 1000*60*60*2)}});
+db.user.find({"l_activity":{"$lte":ISODate("2019-09-18T06:04:53+0000")}});
+db.user.findOneAndUpdate({l_dtg:{$lte: new Date(ISODate().getTime() - 1000*60*60)}},{$set: {session: ""}});
+$a = new MongoDB\BSON\UTCDateTime();
+$dtg = $a->toDateTime()->format(\DateTime::ISO8601);
+$dtg = $a->toDateTime()->format(\DateTime::ATOM);
+
+db.user.insert({
+  u_name: "tps11",
+  alias: "YjlkMjkzMTg0NmJhMWM1NWI0MGZlZjljMTdiNzgwOTNjY2Y3ODQzMDQ2NjIxNDhmNzIxOTY5NTM1ZjM3NTI4Nu6fjnJGA-1a5pGnrHXJmzb2mOqzSroMvet1B8rjEnax",
+  salt: "4977104a6d68f752e66b76065adabdaddee3349ece4fad4e8ab5b499ea5bc6327b123c1b42e75e9856c0194b38cac487a6fffb204f0dddccf4f72ff5584c2f6e", !@#$%
+  pwd: "4dcd02f88827a152fa43c81463777c846581634f82fa6ecbdea34feb0b7478df62e2b1eb034ba60b19c45c59df1bb62215a22e77fdd6320b3236cabc2f2d4b9a",
+  c_dtg: new Date(),
+  l_dtg: new Date(),
+  l_activity: new Date(),
+  l_ip: "192.168.5.101",
+  session: "abcdefg",
+  status: "1",
+  exm: "0",
+  exm_ds: "1",
+  exm_mail: "1",
+  exm_sat: "0",
+  exm_reason: "xx",
+  last_ds: new Date("2016-05-18T16:00:00Z"),
+  last_mail: new Date("2016-05-18T16:00:00Z"),
+  last_sat: new Date("2016-05-18T16:00:00Z"),
+  gp_id: NumberInt(2),
+  gp_admin:["1"],
+  permission: ["2"]
+})
+
+
+db.createCollection( "blockip" , { 
+   validator: { $jsonSchema: { 
+      bsonType: "object",
+      additionalProperties: false,
+      required: [ "ip" ], 
+      properties: {
+         _id : {
+              bsonType: "objectId" }, 
+         ip: { 
+            bsonType: "string", 
+            description: "last ip" },     
+         usr_name: { 
+            bsonType: "string", 
+            description: "User name try to login" },         
+         dtg: { 
+            bsonType: "date", 
+            description: "last login time" },      
+      }
+   }
+}})
+
+
+db.createCollection( "usergp" , { 
+   validator: { $jsonSchema: { 
+      bsonType: "object",      
+      required: [ "ip" ], 
+      properties: {         
+         gp_id: { 
+            bsonType: "string", 
+            description: "last ip" },     
+         gp_name: { 
+            bsonType: "string", 
+            description: "User name try to login" },         
+         dtg: { 
+            bsonType: "date", 
+            description: "last login time" },      
+      }
+   }
+}})
+
+db.usergp.insert({
+  _id: NumberInt(1),
+  gp_id: "1",  
+  gp_name: "Admin",
+  dtg: new Date()
+})
+
+db.blockip.insert({
+  ip: "192.168.5.1",
+  usr_name: "-fAJYpQdUfoslk2nnqCp9_GoM3SC-jHze6rNwXE2NSo",  
+  ask: new Date(),
+  reason:"Don't know"
+})
+
+
+//Join
+
+db.user.aggregate({
+$lookup:
+    {
+        from: "usergp",
+        localField: "group",
+        foreignField : "_id",
+        as: "ordered_product"
+    }
+})
+
+ 
+        $option = array(
+            array(
+                '$lookup'=>array(
+                'from'=> 'usergp',
+                'localField' =>'gp_id',
+                'foreignField' => '_id',
+                'as'=> "abcd"
+                )
+            )
+        );
+    
+        $aa = $cursor = $collection->aggregate($option);
+
+ $option = [
+            ['$match'=>['u_name'=>'tps21']],
+            [
+                '$lookup'=>[
+                'from'=> 'usergp',
+                'localField' =>'gp_id',
+                'foreignField' => '_id',
+                'as'=> "abcd"
+                ]
+            ],
+            ['$project'=>['abcd.gp_name'=>1]] // Another way
+            ['$project'=>['abcd'=>['gp_name'=>1]]]
+        ];
+
+
+db.books.find().forEach(
+    function (newBook) {
+        newBook.category = db.categories.findOne( { "_id": newBook.category } );
+        newBook.lendings = db.lendings.find( { "book": newBook._id  } ).toArray();
+        newBook.authors = db.authors.find( { "_id": { $in: newBook.authors }  } ).toArray();
+        db.booksReloaded.insert(newBook);
+    }
+);
+
+
+I personally came across with the absence of a link to 'vendor/autoload.php'. It started working after my code looked like the following:
+
+  $DB_CONNECTION_STRING="mongodb://YourCredentials";
+  require '../vendor/autoload.php';
+  $manager = new MongoDB\Driver\Manager( $DB_CONNECTION_STRING );
+  
+Then if you use MongoDB\Driver\Manager, a modern version of MongoDB driver, you implement CRUD operations such as the following:
+
+Create a document in the collection:
+
+  $bulkWrite = new MongoDB\Driver\BulkWrite;
+  $doc = ['name' => 'John', age => 33, profession => 'Guess what?'];
+  $bulkWrite->insert($doc);
+  $manager->executeBulkWrite('db.MyCollection', $bulkWrite);
+
+Read document in the collection by name with a limit:
+
+  $filter = ['name' => 'John'];
+  $options = ['limit' => 2];
+  $query = new MongoDB\Driver\Query($filter, $options);
+  $manager->executeQuery('db.MyCollection', $query);
+
+Read document in the collection by MongoDb _id with a limit:
+
+  $filter = ['_id' => new MongoDB\BSON\ObjectID( '5bdf54e6d722dc000f0aa6c2' )];
+  $options = ['limit' => 2];
+  $query = new MongoDB\Driver\Query($filter, $options);
+  $manager->executeQuery('db.MyCollection', $query);    
+
+Update document in the collection: (Read more about options upsert and multi here)
+
+  $bulkWrite = new MongoDB\Driver\BulkWrite;
+  $filter = ['name' => 'John'];
+  $update = ['$set' => ['name' => 'Smith', age: 35, profession => 'Guess what?']];
+  $options = ['multi' => false, 'upsert' => false];
+  $bulkWrite->update($filter, $update, $options);
+  $manager->executeBulkWrite('db.MyCollection', $bulkWrite); 
+
+Delete document in the collection - Delete:
+
+  $bulkWrite = new MongoDB\Driver\BulkWrite;
+  $filter = ['name' => 'John', age => 35];
+  $options = ['limit' => 1];
+  $bulkWrite->delete($filter, $options);
+  $manager->executeBulkWrite('db.MyCollection', $bulkWrite);
+
+
+  // Empty collection
+  db.targets.remove({});
+
+// Current Date folder
+
+db.targets.find({'l_data_dw':{"$gte":new Date('2019-11-01')}});

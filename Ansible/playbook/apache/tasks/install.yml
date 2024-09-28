@@ -1,0 +1,8 @@
+---
+- name: Update apt package cache
+  apt:
+    update_cache: yes
+
+- name: Install Aapache
+  apt: name={{ item }} update_cache=yes state=latest
+  loop: ["apache2", "openssl"]

@@ -1,0 +1,16 @@
+- name: Backup existing Apache vhosts configuration
+  copy:
+    src: "/etc/{{ php_ini_filename }}"
+    dest: "/etc/{{ php_ini_filename }}.bak"
+    remote_src: yes
+    backup: yes
+  ignore_errors: yes
+
+- name: Add Apache vhosts configuration
+  template:
+    src: "{{ php_ini_template }}"
+    dest: "/etc/{{ php_ini_filename }}"
+    owner: root
+    group: root
+    mode: '0644'
+  notify: restart apache

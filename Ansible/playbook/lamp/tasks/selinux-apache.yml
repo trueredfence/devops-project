@@ -1,0 +1,33 @@
+---
+
+# Selinux for apache
+- name: Set SELinux boolean httpd_unified to true
+  ansible.posix.seboolean:
+    name: httpd_unified
+    state: yes
+    persistent: yes
+
+- name: Set SELinux boolean httpd_enable_homedirs to true
+  ansible.posix.seboolean:
+    name: httpd_enable_homedirs
+    state: yes
+    persistent: yes
+
+- name: Add SELinux file context for /home/{{ new_user_details.name }}/data
+  sefcontext:
+    target: '/home/{{ new_user_details.name }}/{{ item }}(/.*)?'
+    setype: httpd_sys_rw_content_t
+    state: present
+  loop: ["data", "apache"]
+
+- name: Add SELinux file context for /home/{{ new_user_details.name }}/data/html/log
+  sefcontext:
+    target: '/home/{{ new_user_details.name }}/apache/logs(/.*)?'
+    setype: httpd_log_t
+    state: present
+
+- name: Restore SELinux contexts on data
+  command: restorecon -Rv /home/{{ new_user_details.name }}/data
+
+- name: Restore SELinux contexts on apache
+  command: restorecon -Rv /home/{{ new_user_details.name }}/apache

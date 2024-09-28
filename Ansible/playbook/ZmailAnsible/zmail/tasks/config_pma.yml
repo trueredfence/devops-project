@@ -1,0 +1,6 @@
+---
+- name: Include phpMyAdmin configuration in Apache
+  lineinfile:
+    dest: /etc/apache2/apache2.conf
+    line: Include /etc/phpmyadmin/apache.conf
+  notify: restart-apache

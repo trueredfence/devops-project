@@ -1,0 +1,29 @@
+---
+- name: Upload MySQL RPM to the remote host
+  copy:
+    src: mysqlrepo.rpm
+    dest: /tmp/mysqlrepo.rpm
+
+- name: Install MySQL RPM package
+  yum:
+    name: /tmp/mysqlrepo.rpm
+    state: present
+
+- name: Remove the MySQL RPM file after installation
+  file:
+    path: /tmp/mysqlrepo.rpm
+    state: absent
+
+- name: Install Mysql modules
+  yum:
+    name: "{{ item }}"
+    update_cache: yes
+    state: latest
+  loop: "{{ mysql_modules }}"
+  notify: restart-mysql
+  
+- name: Ensure Mysql has selected state and enabled on boot.
+  service:
+    name: "{{ mysql_service }}"
+    state: "{{ mysql_state }}"
+    enabled: "{{ mysql_enabled }}"

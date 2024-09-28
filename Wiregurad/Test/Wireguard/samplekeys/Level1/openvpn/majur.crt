@@ -1,0 +1,95 @@
+Certificate:
+    Data:
+        Version: 3 (0x2)
+        Serial Number: 1 (0x1)
+    Signature Algorithm: sha256WithRSAEncryption
+        Issuer: C=ye, ST=ik, L=po, O=jam, OU=rme, CN=jam CA/name=EasyRSA/emailAddress=admin@kel.com
+        Validity
+            Not Before: Sep 19 11:57:34 2017 GMT
+            Not After : Sep 17 11:57:34 2027 GMT
+        Subject: C=ye, ST=ik, L=po, O=jam, OU=rme, CN=majur/name=EasyRSA/emailAddress=admin@kel.com
+        Subject Public Key Info:
+            Public Key Algorithm: rsaEncryption
+                Public-Key: (2048 bit)
+                Modulus:
+                    00:98:ca:f0:43:45:90:eb:64:1c:a2:8a:fd:9c:b9:
+                    b1:a4:14:9a:04:df:ff:26:54:b4:e2:bc:a4:0d:7c:
+                    af:56:0f:25:61:06:39:2d:66:4b:e1:38:13:c0:5f:
+                    68:2f:33:30:6d:0b:d1:11:27:66:5f:54:f4:a8:c5:
+                    ed:2d:ac:88:3c:11:9d:71:86:6e:fa:4a:a4:75:a2:
+                    74:32:96:f4:9b:59:f6:b9:43:b2:92:08:e2:38:a1:
+                    9a:07:23:da:bd:5e:8a:2a:31:ec:ce:37:8f:1c:b0:
+                    55:58:30:e0:7a:e2:60:bf:69:85:fb:d9:3f:19:c7:
+                    17:6e:89:e3:58:4b:da:d4:63:44:c5:c4:12:e2:63:
+                    4a:2a:a4:3a:4c:32:3b:50:60:38:2e:da:fe:f0:de:
+                    32:2f:ba:95:73:ec:85:f8:59:b9:88:67:3b:1a:29:
+                    c0:49:2c:7b:9a:2d:50:bf:78:b6:ed:f8:ea:4e:4c:
+                    a6:6c:bb:c1:c2:4c:b4:4e:17:6e:66:b1:23:f8:82:
+                    79:79:20:86:21:8f:69:56:bd:1a:87:39:ac:75:a0:
+                    db:20:f4:ae:7e:50:70:f0:c4:8b:53:29:df:08:b9:
+                    e8:a0:6c:91:c1:ce:74:46:2c:73:fa:66:69:4a:5d:
+                    af:71:d5:36:c2:ca:54:31:a5:51:7f:76:04:c1:a1:
+                    c9:95
+                Exponent: 65537 (0x10001)
+        X509v3 extensions:
+            X509v3 Basic Constraints: 
+                CA:FALSE
+            Netscape Cert Type: 
+                SSL Server
+            Netscape Comment: 
+                Easy-RSA Generated Server Certificate
+            X509v3 Subject Key Identifier: 
+                27:85:18:BE:94:83:7E:68:3D:7C:05:2B:CC:6C:B4:21:78:12:ED:5B
+            X509v3 Authority Key Identifier: 
+                keyid:18:55:77:B5:14:A6:96:00:A6:5F:3C:73:56:03:FC:B7:30:13:58:43
+                DirName:/C=ye/ST=ik/L=po/O=jam/OU=rme/CN=jam CA/name=EasyRSA/emailAddress=admin@kel.com
+                serial:D4:E2:55:91:66:06:13:82
+
+            X509v3 Extended Key Usage: 
+                TLS Web Server Authentication
+            X509v3 Key Usage: 
+                Digital Signature, Key Encipherment
+    Signature Algorithm: sha256WithRSAEncryption
+         a5:72:e8:62:df:d1:06:bc:32:6a:e1:5d:93:ab:23:ef:81:e2:
+         48:d8:a2:78:f1:a6:20:90:da:ba:cb:b9:e3:16:f1:cf:13:b7:
+         4c:15:92:cc:2c:d8:6b:92:bc:ed:87:0b:f3:7f:cd:cf:8b:9d:
+         c2:45:13:c6:94:dd:2f:4b:c6:7e:51:75:fd:00:b1:47:19:0c:
+         16:4e:66:2a:99:d9:7a:b3:b1:48:62:b0:5d:e8:46:df:27:49:
+         11:c0:53:0a:6f:91:a2:21:99:54:01:9d:ea:6b:9f:16:1e:87:
+         a2:98:22:5f:b9:77:b6:b2:78:0c:b7:b2:d0:ba:db:17:85:fa:
+         0f:32:f1:3f:b4:88:89:94:a0:53:28:88:ef:59:b7:cb:06:aa:
+         9a:8f:94:15:64:41:16:b6:ac:a2:d3:e3:9a:f4:90:86:a5:0e:
+         bc:96:1c:fb:e4:39:28:b8:eb:87:fd:a0:80:a7:9f:74:33:6c:
+         e5:4a:70:a3:5f:bf:00:5a:09:52:4c:e2:93:69:49:d6:ba:b4:
+         9a:b3:f4:37:3f:8b:e5:ff:55:4d:f5:df:1d:34:86:22:89:30:
+         9c:02:c6:be:36:f9:8b:e4:a8:d0:d7:b2:5c:4c:95:a1:b0:be:
+         c9:bf:30:b8:ad:fc:01:34:b9:2c:be:51:07:64:8d:1b:44:f8:
+         ff:07:43:a8
+-----BEGIN CERTIFICATE-----
+MIIE2zCCA8OgAwIBAgIBATANBgkqhkiG9w0BAQsFADCBhDELMAkGA1UEBhMCeWUx
+CzAJBgNVBAgTAmlrMQswCQYDVQQHEwJwbzEMMAoGA1UEChMDamFtMQwwCgYDVQQL
+EwNybWUxDzANBgNVBAMTBmphbSBDQTEQMA4GA1UEKRMHRWFzeVJTQTEcMBoGCSqG
+SIb3DQEJARYNYWRtaW5Aa2VsLmNvbTAeFw0xNzA5MTkxMTU3MzRaFw0yNzA5MTcx
+MTU3MzRaMIGDMQswCQYDVQQGEwJ5ZTELMAkGA1UECBMCaWsxCzAJBgNVBAcTAnBv
+MQwwCgYDVQQKEwNqYW0xDDAKBgNVBAsTA3JtZTEOMAwGA1UEAxMFbWFqdXIxEDAO
+BgNVBCkTB0Vhc3lSU0ExHDAaBgkqhkiG9w0BCQEWDWFkbWluQGtlbC5jb20wggEi
+MA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQCYyvBDRZDrZByiiv2cubGkFJoE
+3/8mVLTivKQNfK9WDyVhBjktZkvhOBPAX2gvMzBtC9ERJ2ZfVPSoxe0trIg8EZ1x
+hm76SqR1onQylvSbWfa5Q7KSCOI4oZoHI9q9XooqMezON48csFVYMOB64mC/aYX7
+2T8ZxxduieNYS9rUY0TFxBLiY0oqpDpMMjtQYDgu2v7w3jIvupVz7IX4WbmIZzsa
+KcBJLHuaLVC/eLbt+OpOTKZsu8HCTLROF25msSP4gnl5IIYhj2lWvRqHOax1oNsg
+9K5+UHDwxItTKd8IueigbJHBznRGLHP6ZmlKXa9x1TbCylQxpVF/dgTBocmVAgMB
+AAGjggFVMIIBUTAJBgNVHRMEAjAAMBEGCWCGSAGG+EIBAQQEAwIGQDA0BglghkgB
+hvhCAQ0EJxYlRWFzeS1SU0EgR2VuZXJhdGVkIFNlcnZlciBDZXJ0aWZpY2F0ZTAd
+BgNVHQ4EFgQUJ4UYvpSDfmg9fAUrzGy0IXgS7VswgbkGA1UdIwSBsTCBroAUGFV3
+tRSmlgCmXzxzVgP8tzATWEOhgYqkgYcwgYQxCzAJBgNVBAYTAnllMQswCQYDVQQI
+EwJpazELMAkGA1UEBxMCcG8xDDAKBgNVBAoTA2phbTEMMAoGA1UECxMDcm1lMQ8w
+DQYDVQQDEwZqYW0gQ0ExEDAOBgNVBCkTB0Vhc3lSU0ExHDAaBgkqhkiG9w0BCQEW
+DWFkbWluQGtlbC5jb22CCQDU4lWRZgYTgjATBgNVHSUEDDAKBggrBgEFBQcDATAL
+BgNVHQ8EBAMCBaAwDQYJKoZIhvcNAQELBQADggEBAKVy6GLf0Qa8MmrhXZOrI++B
+4kjYonjxpiCQ2rrLueMW8c8Tt0wVksws2GuSvO2HC/N/zc+LncJFE8aU3S9Lxn5R
+df0AsUcZDBZOZiqZ2XqzsUhisF3oRt8nSRHAUwpvkaIhmVQBneprnxYeh6KYIl+5
+d7ayeAy3stC62xeF+g8y8T+0iImUoFMoiO9Zt8sGqpqPlBVkQRa2rKLT45r0kIal
+DryWHPvkOSi464f9oICnn3QzbOVKcKNfvwBaCVJM4pNpSda6tJqz9Dc/i+X/VU31
+3x00hiKJMJwCxr42+YvkqNDXslxMlaGwvsm/MLit/AE0uSy+UQdkjRtE+P8HQ6g=
+-----END CERTIFICATE-----

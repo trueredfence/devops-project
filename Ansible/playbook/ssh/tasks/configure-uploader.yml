@@ -1,0 +1,28 @@
+- name: Create /home/{{ new_user_name }}/data directory
+  file:
+    path: /home/{{ new_user_name }}/data
+    state: directory
+    owner: "{{ new_user_name }}"
+    group: apache
+    mode: "0775"
+
+- name: Set the setgid bit on /home/{{ new_user_name }}/data
+  command: chmod g+s /home/{{ new_user_name }}/data
+
+ - name: Apply SELinux context for Apache on /home/{{new_user_name}}/data
+  command: semanage fcontext -a -t httpd_sys_rw_content_t '/home/{{new_user_name}}/data(/.*)?'
+  when: ansible_selinux.status == "enabled"
+
+- name: Restore SELinux context on /home/{{new_user_name}}/data
+  command: restorecon -R /home/{{new_user_name}}/data
+
+  when: ansible_selinux.status == "enabled"
+- name: Add cron job to delete empty directories
+  cron:
+    name: "Delete empty directories in /home/{{new_user_name}}/data"
+    minute: "30"
+    hour: "*"
+    day: "*"
+    month: "*"
+    weekday: "*"
+    job: "/usr/bin/find /home/{{new_user_name}}/data -type d -empty -delete"

@@ -1,0 +1,10 @@
+---
+# handlers file for lamp
+- name: restart apache
+  service:
+    name: "{{ apache_service }}"
+    state: "{{ apache_restart_state }}"
+- name: restart-mysql # name must be similar to notify task
+  service:
+    name: mysqld
+    state: restarted

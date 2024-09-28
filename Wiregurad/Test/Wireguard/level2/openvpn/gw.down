@@ -1,0 +1,39 @@
+#!/bin/bash
+
+eth_iface=`/sbin/ifconfig |grep 'eth0'`
+venet_iface=`/sbin/ifconfig |grep 'venet'`
+if [ -n "$eth_iface" ]
+then
+iface='eth0'
+else
+echo "system dont have eth0 interface"
+
+fi
+if [ -n "$venet_iface" ]
+then
+iface='venet0'
+else
+echo "system dont have venet0 interface"
+fi
+
+
+subnet=`cat /etc/openvpn/*.conf | grep -w ^server | awk -F" " '{print $2}'| sed -e 's/\([0-9]\+\)\.\([0-9]\+\)\.\([0-9]\+\)\.\([0-9]\+\)/\1\.\2\.\3\.0\/24/'`
+
+status_ip_route=`/sbin/ip route show table secure`
+if [ -n "$status_ip_route" ]
+then
+/sbin/ip route del default table secure
+fi
+
+status_ip_rule=`/sbin/ip rule show | grep 'secure'`
+if [ -n "$status_ip_rule" ]
+then
+/sbin/ip rule del from "$subnet" table secure
+fi
+
+status_nat=`/sbin/iptables -t nat -nvL | grep "MASQUERADE"`
+if [ -n "$status_nat" ]
+then
+/sbin/iptables -t nat -D POSTROUTING -o $iface -j MASQUERADE
+fi
+

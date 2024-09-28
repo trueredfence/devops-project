@@ -1,0 +1,8 @@
+
+
+php artisan make:model Groups -m
+php artisan make:model Targets -m
+
+php artisan make:factory GroupsFactory --model=Groups
+php artisan make:factory TargetsFactory --model=Targets
+

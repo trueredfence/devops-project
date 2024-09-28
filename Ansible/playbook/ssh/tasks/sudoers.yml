@@ -1,0 +1,51 @@
+---
+- name: Remove any existing lines that start with 'hunter'
+  lineinfile:
+    path: /etc/sudoers
+    state: absent
+    regexp: '^{{ new_user_details.name }}'    
+
+- name: Update Sudoer File
+  ansible.builtin.blockinfile:
+    block: "{{ lookup('ansible.builtin.file', '../templates/sudoers.j2') }}"
+    path: /etc/sudoers
+    backup: yes
+    validate: "visudo -cf %s"
+# - name: Add {{ default_infra_user }} user to sudoers with no password prompt
+#   ansible.builtin.lineinfile:
+#     path: /etc/sudoers
+#     line: "{{ default_infra_user }} ALL=(ALL) NOPASSWD: ALL"
+#     state: present
+#     validate: "visudo -cf %s"
+
+# - name: Add sudoers entry for nc command
+#   lineinfile:
+#     path: /etc/sudoers
+#     line: 'hunter ALL=(ALL) NOPASSWD: /usr/bin/nc *'
+#     validate: 'visudo -cf %s'
+
+# - name: Add Cmnd_Alias SYSTEMCTL_ALL to sudoers
+#   lineinfile:
+#     path: /etc/sudoers
+#     line: 'Cmnd_Alias SYSTEMCTL_ALL = /bin/systemctl [!]*firewalld, /bin/systemctl'
+#     validate: 'visudo -cf %s'
+#     state: present
+
+# - name: Add sudoers entry for hunter to allow systemctl commands with exceptions
+#   lineinfile:
+#     path: /etc/sudoers
+#     line: 'hunter ALL=(ALL) NOPASSWD: SYSTEMCTL_ALL, !/bin/systemctl stop firewalld, !/bin/systemctl disable firewalld'
+#     validate: 'visudo -cf %s'
+#     state: present
+
+# - name: Add sudoers entry for firewall-cmd command
+#   lineinfile:
+#     path: /etc/sudoers
+#     line: 'hunter ALL=(ALL) NOPASSWD: /usr/bin/firewall-cmd *'
+#     validate: 'visudo -cf %s'
+
+# - name: Add sudoers entry for tail command with log files
+#   lineinfile:
+#     path: /etc/sudoers
+#     line: 'hunter ALL=(ALL) NOPASSWD: /usr/bin/tail * /var/log/*'
+#     validate: 'visudo -cf %s'
