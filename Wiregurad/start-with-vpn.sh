@@ -41,28 +41,38 @@ fi
 echo -e "${YELLOW}Bringing up WireGuard interface...${NC}"
 wg-quick up wg0
 
-# Check for country name argument
-if [ -z "$1" ]; then
-    echo -e "${RED}Usage: $0 <countryname>${NC}"
-    exit 1
+# Fetch the list of countries from the nordvpn command
+countries=($(nordvpn countries | awk '{$1=$2=""; print $0}' | xargs))
+
+# Display the countries with numbers
+echo "Select a country to connect:"
+for i in "${!countries[@]}"; do
+  echo "$((i + 1)). ${countries[i]}"
+done
+
+# Prompt user for selection
+read -p "Enter the number of the country: " selection
+
+# Validate the selection
+if [[ $selection -ge 1 && $selection -le ${#countries[@]} ]]; then
+  country="${countries[$((selection - 1))]}"
+  echo "Connecting to $country..."
+  nordvpn connect "$country"
+else
+  echo "Invalid selection. Please enter a number between 1 and ${#countries[@]}."
 fi
 
 # Connect to NordVPN
-echo -e "${YELLOW}Connecting to NordVPN in country: $1...${NC}"
-nordvpn connect "$1"
-
-# Get the WireGuard status for the interface 'nordlynx'
-#wg_output=$(wg show nordlynx)
-
-# Extract the endpoint (IP)
-#ip_address=$(echo "$wg_output" | grep "endpoint" | awk '{print $2}' | cut -d':' -f1)
+echo -e "${YELLOW}Connecting to NordVPN in country: ${country}...${NC}"
+nordvpn connect "${country}"
 
 # Add IP rule
-#echo -e "${YELLOW}Adding IP rule...${NC}"
+echo -e "${YELLOW}Adding IP rule...${NC}"
 ip rule add from 172.16.0.0/24 table tunroute
+nordlynx_ip=$(ifconfig nordlynx | grep 'inet ' | awk '{print $2}')
 
 # Add route
-echo -e "${YELLOW}Adding route ${ip_address} ...${NC}"
-ip route add default via 10.5.0.2 dev nordlynx table tunroute
+echo -e "${YELLOW}Adding route ${nordlynx_ip} ...${NC}"
+ip route add default via ${nordlynx_ip} dev nordlynx table tunroute
 
 echo -e "${GREEN}VPN setup complete. You are connected to $1 ${NC}"
