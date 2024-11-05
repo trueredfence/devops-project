@@ -17,6 +17,7 @@ fi
 banner() {
     echo -e "${BLUE}=========================================${NC}"
     echo -e "${GREEN}         Secure SSH Version 1.2         ${NC}"
+    echo -e "${YELLOW}         Bytesec - Secure your SSH      ${NC}"
     echo -e "${BLUE}=========================================${NC}"
 }
 
