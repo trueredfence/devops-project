@@ -112,3 +112,4 @@ fi
 # Restart SSH service
 echo -e "${YELLOW}Restarting SSH service...${NC}"
 systemctl restart sshd.service
+echo -e "${GREEN}SSH hardening process completed.${NC}"
