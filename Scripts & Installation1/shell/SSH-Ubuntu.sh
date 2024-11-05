@@ -32,9 +32,11 @@ common_setup() {
     ssh-keygen -t ed25519 -f /etc/ssh/ssh_host_ed25519_key -N ""
 
     # Update sshd_config with new HostKey entries
+    echo -e "${YELLOW}Update sshd_config with new HostKey entries...${NC}"
     echo -e "\nHostKey /etc/ssh/ssh_host_ed25519_key\nHostKey /etc/ssh/ssh_host_rsa_key" >> /etc/ssh/sshd_config
 
     # Update moduli file
+    echo -e "${YELLOW}Update moduli file with bigger key length...${NC}"
     awk '$5 >= 3071' /etc/ssh/moduli > /etc/ssh/moduli.safe
     mv /etc/ssh/moduli.safe /etc/ssh/moduli
 }
@@ -63,7 +65,7 @@ check_os_version() {
 configure_ubuntu_24() {
 
     common_setup
-
+    echo -e "${YELLOW}Create new sshd_config file with secure cipher and key exchange methods...${NC}"
     cat <<EOT > /etc/ssh/sshd_config.d/ssh-audit_hardening.conf
 # SSH hardening configuration for Ubuntu 24.04
 KexAlgorithms sntrup761x25519-sha512@openssh.com,gss-curve25519-sha256-,curve25519-sha256,curve25519-sha256@libssh.org,diffie-hellman-group18-sha512,diffie-hellman-group-exchange-sha256,gss-group16-sha512-,diffie-hellman-group16-sha512
@@ -82,7 +84,7 @@ EOT
 # Function to configure settings for Ubuntu 22.04
 configure_ubuntu_22() {
     common_setup
-
+    echo -e "${YELLOW}Create new sshd_config file with secure cipher and key exchange methods...${NC}"
     cat <<EOT > /etc/ssh/sshd_config.d/ssh-audit_hardening.conf
 # SSH hardening configuration for Ubuntu 22.04
 KexAlgorithms sntrup761x25519-sha512@openssh.com,curve25519-sha256,curve25519-sha256@libssh.org,gss-curve25519-sha256-,diffie-hellman-group16-sha512,gss-group16-sha512-,diffie-hellman-group18-sha512,diffie-hellman-group-exchange-sha256
