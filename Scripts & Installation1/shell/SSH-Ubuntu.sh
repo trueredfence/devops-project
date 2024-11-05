@@ -108,4 +108,5 @@ check_os_version
 
 # Restart Service
 echo -e "${YELLOW}Restarting SSH service...${NC}"
-service ssh restart
+systemctl restart ssh
+echo -e "${GREEN}SSH hardening process completed.${NC}"
