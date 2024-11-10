@@ -281,16 +281,15 @@ wg set t1-wan fwmark 51820
 ip -4 route add 0.0.0.0/0 dev t1-wan table 51820
 ip -4 rule add not fwmark 51820 table 51820
 
-
-
+ 
 ip -4 rule add table main suppress_prefixlength 0
 sysctl -q net.ipv4.conf.all.src_valid_mark=1
 
 
 # This will route traffice from lan tunnel to wan tunnel 
 ip rule add iif lan-t1 table 123 priority 206
-ip -4 route add 10.10.20.100/32 dev t1-wan table 123
-ip -4 route add 0.0.0.0/0 dev wan table 123
+ip -4 route add 10.10.20.100/32 dev wan-t1 table 123
+ip -4 route add 0.0.0.0/0 dev wan-t1 table 123
 
 
 
@@ -359,8 +358,9 @@ firewall-cmd --permanent --direct --add-rule ipv4 filter FORWARD 2 -i t1-lan -o 
 firewall-cmd --permanent --direct --add-rule ipv4 filter FORWARD 3 -i t1-lan -o t1-wan -p tcp --dport 80 -j ACCEPT
 firewall-cmd --permanent --direct --add-rule ipv4 filter FORWARD 4 -i t1-lan -o t1-wan -p icmp -j ACCEPT
 firewall-cmd --permanent --direct --add-rule ipv4 filter FORWARD 5 -i t1-wan -o t1-lan -p icmp -j ACCEPT
-firewall-cmd --permanent --direct --add-rule ipv4 filter FORWARD 6 -i t1-lan -o t1-wan -j DROP
-firewall-cmd --permanent --direct --add-rule ipv4 filter FORWARD 7 -i t1-wan -o t1-lan -m state --state RELATED,ESTABLISHED -j ACCEPT
+firewall-cmd --permanent --direct --add-rule ipv4 filter FORWARD 6 -i t1-wan -o t1-lan -m state --state RELATED,ESTABLISHED -j ACCEPT
+firewall-cmd --permanent --direct --add-rule ipv4 filter FORWARD 7 -i t1-lan -o t1-wan -j DROP
+
 
 
 firewall-cmd --direct --get-all-rules
@@ -385,19 +385,94 @@ watch -n1 "ip route get 8.8.8.8"
 
 
 
-# FOr wg tunnel to force to connect via selected interface only
-
 # Add routes for WAN 1
-ip route add default via 192.168.10.254 dev <WAN1_INTERFACE> table wan1
-ip route add 192.16.10.0/24 dev <WAN1_INTERFACE> table wan1
+ip route add default via 192.168.10.254 dev wan-t1 table wan1
+ip route add 192.16.10.0/24 dev wan-t1 table wan1
 
 # Add routes for WAN 2
-ip route add default via 172.16.0.254 dev <WAN2_INTERFACE> table wan2
-ip route add 172.16.0.0/24 dev <WAN2_INTERFACE> table wan2
+ip route add default via 172.16.0.254 dev wan-t2 table wan2
+ip route add 172.16.0.0/24 dev wan-t2 table wan2
 
 
 # Route traffic from t1-wan through WAN 1
-ip rule add iif t1-wan table wan1 priority 100
+ip rule add iif wan-t1 table wan1 priority 100
 
 # Route traffic from t2-wan through WAN 2
 ip rule add iif t2-wan table wan2 priority 101
+
+ip rule add iif lan-t1 table 123 priority 206
+ip -4 route add 10.10.20.100/32 dev wan-t1 table 123
+ip -4 route add 0.0.0.0/0 dev wan-t1 table 123
+
+
+ip rule add iif wan-t1 table 321 priority 100
+ip -4 route add 10.0.3.4/32 dev enp0s9 table 321
+ip -4 route add 0.0.0.0/0 dev enp0s9 table 321
+
+ip -4 route add 10.0.2.15/32 dev enp0s3 table 321
+ip -4 route add 0.0.0.0/0 dev enp0s3 table 321
+ip route add default via 10.0.2.15 dev enp0s3 table 321
+
+
+
+ip rule add iif enp0s3 table 321 priority 100 
+sudo ip route add 0.0.0.0/0 dev enp0s9 table 321
+sudo ip route add 10.0.2.0/24 dev enp0s9 table 321
+
+sudo ip route add 0.0.0.0/0 dev enp0s9 table t1-wan
+sudo ip route add 10.0.3.0/24 dev enp0s9 src 10.0.2.15 table t1-wan
+
+ip rule add from 10.10.20.100/29 table 321
+ip route add 147.182.175.95/32 via 10.0.3.1 dev enp0s9 table 321 
+ip route add default via 10.0.3.1 dev enp0s9 table 321
+
+
+# This will route traffice from lan tunnel to wan tunnel 
+ip rule add iif wan-t1 table 321 priority 100
+ip -4 route add 10.0.3.4/32 dev enp0s9 table 321
+ip -4 route add 0.0.0.0/0 dev enp0s9 table 321
+
+
+sudo firewall-cmd --permanent --direct --add-rule ipv4 filter FORWARD 1 -i lan-t1 -o wan-t1 -p icmp -j ACCEPT
+sudo firewall-cmd --permanent --direct --add-rule ipv4 filter FORWARD 1 -i wan-t1 -o lan-t1 -p icmp -j ACCEPT
+
+
+sudo firewall-cmd --permanent --add-rich-rule='rule family="ipv4" source zone="lan-zone" destination zone="wan-zone" service name="icmp" accept'
+sudo firewall-cmd --permanent --add-rich-rule='rule family="ipv4" source zone="wan-zone" destination zone="lan-zone" service name="icmp" accept'
+
+
+sudo firewall-cmd --permanent --zone=lan-zone --remove-icmp-block=echo-request
+sudo firewall-cmd --permanent --zone=lan-zone --remove-icmp-block=echo-reply
+sudo firewall-cmd --permanent --zone=lan-zone --remove-icmp-block=time-exceeded
+sudo firewall-cmd --reload
+
+
+firewall-cmd --permanent --direct --add-rule ipv4 filter FORWARD 7 -i lan-t1 -o wan-t1 -p udp --dport 33434:33534 -j ACCEPT
+firewall-cmd --permanent --direct --add-rule ipv4 filter FORWARD 7 -i wan-t1 -o lan-t1 -p udp --dport 33434:33534 -j ACCEPT
+
+
+# Test routing for traffic from WG1
+ip route get 8.8.8.8 from $(ip -4 addr show dev lan-t1 | grep -oP '(?<=inet\s)\d+(\.\d+){3}')
+
+# Test routing for traffic from WG2
+ip route get 8.8.8.8 from $(ip -4 addr show dev wg2-lan | grep -oP '(?<=inet\s)\d+(\.\d+){3}')
+
+
+
+default via 10.0.2.1 dev enp0s3 proto dhcp src 10.0.2.15 metric 101
+default via 10.0.3.1 dev enp0s9 proto dhcp src 10.0.3.4 metric 103
+
+
+
+
+
+
+lan-t1(wirguard interface) -------> wan-t1(wirguard interface) -----> enp0s3 (physical interface internet)
+lan-t2(wirguard interface) -------> wan-t2(wirguard interface) -----> enp0s9 (physical interface internet)
+
+
+
+ip route add 147.182.175.95 via 10.0.3.1 dev enp0s9
+
+ip rule add iif wan-t1 table 124 priority 207
+ip route add 0.0.0.0/0 dev enp0s3 table 124
