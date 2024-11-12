@@ -9,12 +9,39 @@ CYAN='\033[0;36m'
 MAGENTA='\033[0;35m'
 NC='\033[0m' # No Color
 
+help1 () {
+  printf "=================================================================================\n"
+  printf "+                                 Gateway Script 1.2                            +\n"
+  printf "=================================================================================\n"
+  printf "|                                                                               |\n"
+  printf "| Available options:                                                            |\n"
+  printf "|    start: To start Gateway.                                                   |\n"
+  printf "|    stop: To stop Gateway.                                                     |\n"
+  printf "|    restart: To re-start Gateway                                               |\n"
+  printf "| Thank you for using! Remember me for this work ;)                             |\n"
+  printf "=================================================================================\n"
+}
+
+help() {
+    printf "%s\n" "${CYAN}=================================================================================${NC}"
+    printf "%s\n" "${MAGENTA}+                                 Gateway Script 1.2                            +${NC}"
+    printf "%s\n" "${CYAN}=================================================================================${NC}"
+    printf "%s\n" "${CYAN}|                                                                               |${NC}"
+    printf "%s\n" "${YELLOW}| Available options:                                                            |${NC}"
+    printf "%s\n" "${YELLOW}|    start: To start Gateway.                                                   |${NC}"
+    printf "%s\n" "${YELLOW}|    stop: To stop Gateway.                                                     |${NC}"
+    printf "%s\n" "${YELLOW}|    restart: To re-start Gateway                                               |${NC}"
+    printf "%s\n" "${YELLOW}| Thank you for using! Remember me for this work ;)                             |${NC}"
+    printf "%s\n" "${YELLOW}=================================================================================${NC}"
+}
+
+
 # Banner
-echo -e "${CYAN}========================================${NC}"
-echo -e "${CYAN}=                                      =${NC}"
-echo -e "${MAGENTA}=      Setting up Gateway V 1.1        =${NC}"
-echo -e "${CYAN}=                                      =${NC}"
-echo -e "${CYAN}========================================${NC}"
+# echo -e "${CYAN}========================================${NC}"
+# echo -e "${CYAN}=                                      =${NC}"
+# echo -e "${MAGENTA}=      Setting up Gateway V 1.1        =${NC}"
+# echo -e "${CYAN}=                                      =${NC}"
+# echo -e "${CYAN}========================================${NC}"
  
 
 # Tunnel Details
@@ -52,19 +79,26 @@ declare -a active_interfaces=()
 declare -a validPort=("tcp" "udp" "icmp")
 declare -a wg_ports=("51830" "51831" "51832" "51833")
 showmsg() {
-    if [ "$1" == "i" ]; then
-    	echo 
-        echo -e "${YELLOW}$2${NC}"        
-    elif [ "$1" == "e" ]; then
-        echo -e "${RED}$2${NC}"
-    elif [ "$1" == "s" ]; then
-    	echo -e "${GREEN}$2${NC}"
-    else
-    	echo
-    	echo -e "${CYAN}=============================================${NC}"
-        echo -e "${MAGENTA}$1${NC}"
-        echo -e "${CYAN}=============================================${NC}"
-    fi
+    case "$1" in
+        "i")
+            # Info message (yellow)
+            echo -e "${YELLOW}$2${NC}"
+            ;;
+        "e")
+            # Error message (red)
+            echo -e "${RED}$2${NC}"
+            ;;
+        "s")
+            # Success message (green)
+            echo -e "${GREEN}$2${NC}"
+            ;;
+        *)
+            # Default case (cyan and magenta border)
+            echo -e "${CYAN}=============================================${NC}"
+            echo -e "${MAGENTA}$1${NC}"
+            echo -e "${CYAN}=============================================${NC}"
+            ;;
+    esac
 }
 
 #Check requirement
@@ -677,5 +711,17 @@ init_gw(){
     create_gateway_policy
 }
 
-init_gw
-showmsg "Gateway Initialization is complete"
+# Control Script from here
+if [ "$#" -lt 1 ]; then
+    help
+else
+    if [ "$1" = "restart" ] || [ "$1" = "start" ]; then
+        showmsg i "We are $1 the gateway please wait...."
+        init_gw      
+	showmsg "Gateway Initialization is complete"
+    elif [ "$1" = "stop" ]; then
+        showmsg i "We are $1 the gateway please wait...."
+        reset_gw
+        showmsg s "Gateway is reset to intial state"
+    fi  
+fi
