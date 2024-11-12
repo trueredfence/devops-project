@@ -9,7 +9,7 @@ CYAN='\033[0;36m'
 MAGENTA='\033[0;35m'
 NC='\033[0m' # No Color
 
-help1 () {
+help () {
   printf "=================================================================================\n"
   printf "+                                 Gateway Script 1.2                            +\n"
   printf "=================================================================================\n"
@@ -17,23 +17,24 @@ help1 () {
   printf "| Available options:                                                            |\n"
   printf "|    start: To start Gateway.                                                   |\n"
   printf "|    stop: To stop Gateway.                                                     |\n"
-  printf "|    restart: To re-start Gateway                                               |\n"
+  printf "|    restart: To re-start Gateway                                               |\n"  
+  printf "|    exit: To exit from Gateway script                                          |\n"
   printf "| Thank you for using! Remember me for this work ;)                             |\n"
   printf "=================================================================================\n"
 }
 
-help() {
-    printf "%s\n" "${CYAN}=================================================================================${NC}"
-    printf "%s\n" "${MAGENTA}+                                 Gateway Script 1.2                            +${NC}"
-    printf "%s\n" "${CYAN}=================================================================================${NC}"
-    printf "%s\n" "${CYAN}|                                                                               |${NC}"
-    printf "%s\n" "${YELLOW}| Available options:                                                            |${NC}"
-    printf "%s\n" "${YELLOW}|    start: To start Gateway.                                                   |${NC}"
-    printf "%s\n" "${YELLOW}|    stop: To stop Gateway.                                                     |${NC}"
-    printf "%s\n" "${YELLOW}|    restart: To re-start Gateway                                               |${NC}"
-    printf "%s\n" "${YELLOW}| Thank you for using! Remember me for this work ;)                             |${NC}"
-    printf "%s\n" "${YELLOW}=================================================================================${NC}"
-}
+# help() {
+#     printf "%s\n" "${CYAN}=================================================================================${NC}"
+#     printf "%s\n" "${MAGENTA}+                                 Gateway Script 1.2                            +${NC}"
+#     printf "%s\n" "${CYAN}=================================================================================${NC}"
+#     printf "%s\n" "${CYAN}|                                                                               |${NC}"
+#     printf "%s\n" "${YELLOW}| Available options:                                                            |${NC}"
+#     printf "%s\n" "${YELLOW}|    start: To start Gateway.                                                   |${NC}"
+#     printf "%s\n" "${YELLOW}|    stop: To stop Gateway.                                                     |${NC}"
+#     printf "%s\n" "${YELLOW}|    restart: To re-start Gateway                                               |${NC}"
+#     printf "%s\n" "${YELLOW}| Thank you for using! Remember me for this work ;)                             |${NC}"
+#     printf "%s\n" "${YELLOW}=================================================================================${NC}"
+# }
 
 
 # Banner
@@ -713,15 +714,43 @@ init_gw(){
 
 # Control Script from here
 if [ "$#" -lt 1 ]; then
+    # No arguments passed, show help message and ask for valid argument
     help
+    echo "Please provide a valid argument. You can choose from: start, stop, restart"
+    echo "Type 'exit' to quit or provide a valid argument."
+    read -p "Your choice: " user_input
+    while [[ "$user_input" != "start" && "$user_input" != "stop" && "$user_input" != "restart" && "$user_input" != "exit" ]]; do
+        help
+        echo "Invalid argument. Please provide a valid argument or type 'exit' to quit."
+        read -p "Your choice: " user_input
+    done
+
+    if [ "$user_input" = "exit" ]; then
+        echo "Exiting script..."
+        exit 0
+    fi
+
+    # Re-run the script with the correct user input as argument
+    "$0" "$user_input"
+
 else
-    if [ "$1" = "restart" ] || [ "$1" = "start" ]; then
-        showmsg i "We are $1 the gateway please wait...."
-        init_gw      
-	showmsg "Gateway Initialization is complete"
-    elif [ "$1" = "stop" ]; then
-        showmsg i "We are $1 the gateway please wait...."
-        reset_gw
-        showmsg s "Gateway is reset to intial state"
-    fi  
+    # User passed an argument, proceed with the action
+    case "$1" in
+        "start" | "restart")
+            showmsg i "We are $1 the gateway, please wait...."
+            init_gw
+            showmsg s "Gateway initialization is complete"
+            ;;
+        "stop")
+            showmsg i "We are $1 the gateway, please wait...."
+            reset_gw
+            showmsg s "Gateway is reset to initial state"
+            ;;
+        *)
+            # Invalid argument passed, show help message
+            help
+            echo "Invalid argument '$1'. Please provide a valid argument."
+            ;;
+    esac
 fi
+
