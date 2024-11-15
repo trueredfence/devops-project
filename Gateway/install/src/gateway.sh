@@ -492,9 +492,21 @@ create_zones_with_default_settings(){
             firewall-cmd --permanent --zone="$zone_name" --add-forward  && \
             firewall-cmd --permanent --zone="$zone_name" --add-masquerade 
         fi
-    done
+    done     
     showmsg s "Reloading firewall after creating zones"
     firewall-cmd --reload
+    configure_public_zone
+}
+
+configure_public_zone(){
+    showmsg s "Setting up public zone"
+     for port in "${lan_side_ports[@]}"; do
+        if ! firewall-cmd --permanent --zone=public --list-ports | grep -q "$port"; then
+            firewall-cmd --permanent --add-port=$port --zone=public
+        fi
+     done;
+     firewall-cmd --permanent --add-masquerade --zone=public
+     firewall-cmd --reload
 }
 
 add_remove_iface_in_zones(){    
