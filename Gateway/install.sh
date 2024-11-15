@@ -8,10 +8,11 @@ BLUE='\033[0;34m'
 CYAN='\033[0;36m'
 MAGENTA='\033[0;35m'
 NC='\033[0m' # No Color
+export TOP_PID=$$
 
-help () {
+info () {
   printf "=======================================================================================\n"
-  printf "+                                 Gateway Script 1.2                                  +\n"
+  printf "+                                 ${MAGENTA}Gateway Script 1.2${NC}                                  +\n"
   printf "=======================================================================================\n"
   printf "| This script will install gateway configurations and requirements automactically     |\n"
   printf "| in centos9 machines                                                                 |\n"
@@ -26,11 +27,11 @@ help () {
   printf "|   1. It will create gateway command that will be accessable on terminal directly    |\n"
   printf "|   2. It will create gateway service that will run during shutdown and at startup    |\n"
   printf "|   3. It will install wiregarud dashboard that can be access on                      |\n"
-  printf "|      http://<serverip>:5000/                                                        |\n"                                                                           
+  printf "|      ${YELLOW}http://<serverip>:5000/${NC}                                                        |\n"
   printf "=======================================================================================\n"
 }
 
-help
+info
 
 showmsg() {
     case "$1" in
@@ -63,16 +64,18 @@ check_required_files(){
         if [[ ! -f "./src/$file" ]]; then
             showmsg e "Error: $file not available. Exiting."
             showmsg i "All required files and folder are present. Proceeding with installation."
-            exit 1
+            #exit 1
+            kill $TOP_PID
         fi
     done
 
     if [[ ! -d "./src/$wgFolder" ]]; then
         showmsg e "Error: Folder $wgFolder not available. Exiting."
         showmsg i "All required files and folder are present. Proceeding with installation."
-        exit 1
+        #exit 1
+        kill $TOP_PID
     fi
-	
+    enable_packet_fwd	
 }
 
 
@@ -84,6 +87,13 @@ install_required_packages(){
     sudo dnf -y install net-tools wireguard-tools vim traceroute firewalld wget curl git zsh unzip dhcp-server openssl-devel bzip2-devel libffi-devel python3.11 && \
     sudo dnf -y upgrade
     sleep 2 
+}
+
+enable_packet_fwd(){
+    if ! grep -q "^net.ipv4.ip_forward=" /etc/sysctl.conf; then
+        echo "net.ipv4.ip_forward=1" | sudo tee -a /etc/sysctl.conf > /dev/null
+        sysctl -p
+    fi
 }
 
 move_file_to_respective_loc(){
@@ -173,5 +183,6 @@ if [[ "$user_input" == "y" || "$user_input" == "Y" || "$user_input" == "yes" ]];
     init
 else
     echo "Exiting the script."
-    exit 1
+    #exit 1
+    kill $TOP_PID
 fi
