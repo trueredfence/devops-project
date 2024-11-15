@@ -1,0 +1,18 @@
+[Unit]
+After=syslog.target network-online.target
+Wants=wg-quick.target
+ConditionPathIsDirectory=/etc/wireguard
+
+[Service]
+Type=forking
+PIDFile=/usr/share/WGDashboard/src/gunicorn.pid
+WorkingDirectory=/usr/share/WGDashboard/src
+ExecStart=/usr/share/WGDashboard/src/wgd.sh start
+ExecStop=/usr/share/WGDashboard/src/wgd.sh stop
+ExecReload=/usr/share/WGDashboard/src/wgd.sh restart
+TimeoutSec=120
+PrivateTmp=yes
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
