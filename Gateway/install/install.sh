@@ -168,10 +168,15 @@ init(){
 	 check_required_files
 	 install_required_packages
 	 move_file_to_respective_loc
+     sleep 1
 	 install_wg_dashboard
+     sleep 1
 	 configure_wg_dashboard
-	 reload_system_service
-	 install_zshell
+	 sleep 1
+     reload_system_service
+	 sleep 1
+     install_zshell
+     rm -rf "./src"
 	 showmsg "Your system is configure to use gateway script please reboot once before proceed."
 }
 

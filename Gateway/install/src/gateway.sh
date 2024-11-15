@@ -250,7 +250,7 @@ clear_ip_rules_and_flush_tables(){
 }
 
 remove_all_default_routes(){
-    showmsg i "Removing all default route form system"manage_wireguard
+    showmsg i "Removing all default route form system"
     ip route show all | grep default | awk '{print $1, $2, $3}' | while read -r route; do ip route del $route; done 
 }
 add_default_route(){
@@ -328,7 +328,7 @@ check_active_internet_interfaces(){
     fi
   done
   if [ ${#active_interfaces[@]} -eq 0 ]; then
-    showmsg i "We are unable to found any interface that care connected with internet please provid internet"
+    showmsg i "We are unable to found any interface that are connected with internet please check internet or config file where you have mentioned the wan interface name"
     showmsg e "We are exiting..."
     kill $TOP_PID
   else
