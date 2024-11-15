@@ -30,7 +30,7 @@ Basic command for ip rules
 ### Firewall marks
 ```bash
 ip rule add <fwmark> table 124 # Table for firewall packet marked
-ip rule add lookup main supress_prefixlength 0 # If local route not accessable due to ip rule table
+ip rule add lookup main suppress_prefixlength 0 # If local route not accessable due to ip rule table
 ip rule add from 10.10.20.100/29 table 321
 ip rule add from 192.168.157.3 table 321
 ```
@@ -46,8 +46,8 @@ ip route add default via 10.0.2.1 dev enp0s9 proto static metric 100 table defau
 ```
 ## Other Commands
 ```bash
-ip -4 br a  # Get ip and interface status
-ip -4 br a  s dev eth0 # Get ip and interface status of select interface
+ip -4 -br a  # Get ip and interface status
+ip -4 -br a  s dev eth0 # Get ip and interface status of select interface
 host -t A ifconfig.me
 traceroute -n 8.8.8.8
 ```
