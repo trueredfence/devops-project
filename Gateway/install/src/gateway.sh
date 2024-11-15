@@ -531,8 +531,8 @@ add_remove_iface_in_zones(){
     firewall-cmd --reload
     showmsg s "Firewall reloaded and changes applied."
 }
-create_fw_policy(){
-    local default_action="DROP"  
+
+create_fw_policy(){      
     local target 
     showmsg i "Applying custom accept policies based on rules array..."
     for rule in "${firewall_policies[@]}"; do
