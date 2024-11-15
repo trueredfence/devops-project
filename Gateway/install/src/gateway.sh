@@ -11,20 +11,20 @@ NC='\033[0m' # No Color
 export TOP_PID=$$
 
 help () {
-  printf "=================================================================================\n"
-  printf "+                                 Gateway Script 1.2                            +\n"
-  printf "=================================================================================\n"
-  printf "|                                                                               |\n"
-  printf "| Available options:                                                            |\n"
-  printf "|    1): To start Gateway.                                                      |\n"
-  printf "|    2): To re-start Gateway.                                                   |\n"
-  printf "|    3): To stop Gateway                                                        |\n"  
-  printf "|    4): To reset Gateway                                                       |\n"  
-  printf "|    5): To debug Gateway                                                       |\n"  
-  printf "|    6): To install Gateway                                                     |\n"  
-  printf "|    0): To exit from Gateway script                                            |\n"
-  printf "| Thank you for using! Remember me for this work ;)                             |\n"
-  printf "=================================================================================\n"
+  printf "============================================================================\n"
+  printf "+                            Gateway Script 1.3                            +\n"
+  printf "============================================================================\n"
+  printf "|                                                                           |\n"
+  printf "| Available options:                                                        |\n"
+  printf "|    1): To start Gateway.                                                  |\n"
+  printf "|    2): To re-start Gateway.                                               |\n"
+  printf "|    3): To stop Gateway                                                    |\n"
+  printf "|    4): To reset Gateway                                                   |\n"
+  printf "|    5): To debug Gateway                                                   |\n"
+  printf "|    0): To exit from Gateway script                                        |\n"
+  printf "============================================================================\n"
+  printf "|               Thank you for using! Remember me for this work ;)           |\n"
+  printf "============================================================================\n"
 }
  
 ##########################################
