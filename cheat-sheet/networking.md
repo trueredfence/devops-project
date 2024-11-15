@@ -44,7 +44,7 @@ traceroute -n 8.8.8.8
 
 ## Network Manager
 Basic Commands for Network manager
-### Change Connection ip address
+### nmcli Connection & device cmd
 ```bash
 nmcli connection show
 nmcli connection show --active
