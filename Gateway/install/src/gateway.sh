@@ -54,6 +54,7 @@ declare -A zones=()
 # DMZ can be accessed via tunnel only
 # Mention the tunnel allowed to access DMZ (default lan-t1)
 ##########################################
+declare -A dmz_service_name=()
 declare a dmz_access_via=()
 
 ##########################################
