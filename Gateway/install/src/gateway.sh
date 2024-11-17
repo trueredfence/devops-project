@@ -25,6 +25,7 @@ help () {
   printf "============================================================================\n"
   printf "|               Thank you for using! Remember me for this work ;)          |\n"
   printf "============================================================================\n"
+  sleep 1
 }
  
 ##########################################
@@ -54,6 +55,7 @@ declare -A zones=()
 # DMZ can be accessed via tunnel only
 # Mention the tunnel allowed to access DMZ (default lan-t1)
 ##########################################
+declare dmz_interface
 declare -A dmz_service_name=()
 declare a dmz_access_via=()
 
@@ -162,7 +164,7 @@ get_wireguard_info() {
             fi
             ;;
         "endpoint")           
-            result=$(grep -i "Endpoint" "/etc/wireguard/wan-t1.conf" | awk -F'=' '{split($2, a, ":"); print a[1]}' | tr -d '[:space:]')
+            result=$(grep -i "Endpoint" "$config_file" | awk -F'=' '{split($2, a, ":"); print a[1]}' | tr -d '[:space:]')
             if [[ -n "$result" ]]; then
                 echo "$result"
             else                
@@ -230,7 +232,7 @@ start_stop_networkmanager(){
 
 clear_ip_rules_and_flush_tables(){
     local table
-    local routefile="/root/gateway/routes"
+    local routefile="/root/gateway/routes"    
     ip route flush table default 
     # Remove all IP rules except for the 'local', 'main', and 'default'
     ip rule show all | grep -vE 'from all lookup (local|main|default)' | awk -F: '{print $1}' | while read prefix; do
@@ -246,26 +248,35 @@ clear_ip_rules_and_flush_tables(){
         while IFS= read -r line; do
            ip route del $line           
         done < "$routefile"
-    fi 
+    fi     
     > "$routefile"
 }
 
 remove_all_default_routes(){
+    local routefile="/root/gateway/default-routes" 
     showmsg i "Removing all default route form system"
+    ip route show all | grep default >> "$routefile"
     ip route show all | grep default | awk '{print $1, $2, $3}' | while read -r route; do ip route del $route; done 
 }
 add_default_route(){
-    local i=0
-    for iface in "${wan_interface[@]}"; do      
-        gateway=$(get_nic_info "$iface" "gateway")
-        src_ip=$(ip addr show "$iface" | grep 'inet ' | awk '{print $2}' | cut -d/ -f1)
-        route="default via $gateway dev $iface proto static src $src_ip metric 10$i" 
-        if ! ip route show | grep -q "$route"; then
-            echo "Adding route: $route"
-            ip route add default via "$gateway" dev "$iface" proto static src "$src_ip" metric 10"$i" 
-        fi
-        ((i++))        
-    done  
+    local routefile="/root/gateway/default-routes"  
+    if [ -f "$routefile" ]; then
+        while IFS= read -r line; do
+           ip route add $line           
+        done < "$routefile"
+    fi  
+    > "$routefile"
+    # local i=0
+    # for iface in "${wan_interface[@]}"; do      
+    #     gateway=$(get_nic_info "$iface" "gateway")
+    #     src_ip=$(ip addr show "$iface" | grep 'inet ' | awk '{print $2}' | cut -d/ -f1)
+    #     route="default via $gateway dev $iface proto static src $src_ip metric 10$i" 
+    #     if ! ip route show | grep -q "$route"; then
+    #         echo "Adding route: $route"
+    #         ip route add default via "$gateway" dev "$iface" proto static src "$src_ip" metric 10"$i" 
+    #     fi
+    #     ((i++))        
+    # done  
 }
 manage_wireguard() { 
     showmsg i "Reset the wireguard interface" 
@@ -343,7 +354,7 @@ setting_up_routing_lan_secure_tunnel(){
     local table=123
     local wan_ifcae
     local wan_ip
-    for interface in "${lantun[@]}"; do        
+    for interface in "${lantun[@]}"; do  
         showmsg i "Adding routing for $interface tunnel"
         wan_ifcae="${interface/lan/wan}"
         # 1. Fetch the corresponding WAN IP
@@ -396,6 +407,20 @@ setting_up_routing_lan_secure_tunnel(){
         else
             showmsg s "Default route for $wan_ifcae already exists. Skipping."
         fi
+        #5. Add DMZ rule if exits
+        if [[ " ${dmz_access_via[@]} " =~ " $interface " ]]; then
+            if [ ! -n "$dmz_interface" ]; then
+                showmsg e "Define DMZ interface in gw-config file"
+                kill $TOP_PID
+            fi
+            # Loop through dmz_service_name associative array
+            for service in "${!dmz_service_name[@]}"; do
+                service_ip=${dmz_service_name[$service]}                
+                ip route add "$service_ip" dev "$dmz_interface" table "$table"
+            done
+            showmsg s "DMZ rules added successfully for $interface"
+        fi
+        
         ((priority++))
         ((table++))
     done
@@ -413,21 +438,46 @@ setting_up_routing_wan_secure_tunnel(){
         showmsg e "No active interfaces found, exiting."
         exit 1
     fi
+
     i=0
-    num_active=${#active_interfaces[@]}
+    num_active=${#active_interfaces[@]}  # Number of active interfaces
     for interface in "${wantun[@]}"; do
         endpoint=$(get_wireguard_info "$interface" "endpoint")
-        active_iface=${active_interfaces[$((i % num_active))]}  # Wrap around using modulo
+        active_iface=${active_interfaces[$((i % num_active))]}  # Wrap index using modulo
         gateway=$(get_nic_info "$active_iface" "gateway")
-        if ! ip route show | grep -q "$endpoint via $gateway dev $active_iface"; then
+        if ! ip route show | grep -q "$endpoint via $gateway dev $active_iface"; then           
             echo "$endpoint via $gateway dev $active_iface" >> "$routefile"
             ip route add "$endpoint" via "$gateway" dev "$active_iface"
             showmsg s "Added route for $interface to endpoint $endpoint via $active_iface ($gateway)"
-        else
+        else            
             showmsg s "Route for $endpoint via $gateway on $active_iface already exists"
         fi
-        ((i++))
+        ((i++))  
     done
+   #  local j
+   # # num_active=${#active_interfaces[@]}   
+   #  for interface in "${wantun[@]}"; do 
+   #      j=0
+   #      if [[ ! -n ${num_active[$j]} ]]; then
+   #          j=0
+   #          active_iface=${active_interfaces[$j]}
+   #          echo "$active_iface changed again"
+   #      else
+   #          active_iface=${active_interfaces[$j]}
+   #      fi   
+   #      endpoint=$(get_wireguard_info "$interface" "endpoint")       
+   #      gateway=$(get_nic_info "$active_iface" "gateway")      
+   #      if ! ip route show | grep -q "$endpoint via $gateway dev $active_iface"; then
+   #          # Add the route
+   #          echo "$endpoint via $gateway dev $active_iface" >> "$routefile"
+   #          ip route add "$endpoint" via "$gateway" dev "$active_iface"
+   #          showmsg s "Added route for $interface to endpoint $endpoint via $active_iface ($gateway)"
+   #      else           
+   #          showmsg s "Route for $endpoint via $gateway on $active_iface already exists"
+   #      fi
+   #      ((j++))
+   #  done
+   
 }
 
 remove_direct_rules_fw(){
@@ -488,11 +538,11 @@ create_zones_with_default_settings(){
         else
             # If the zone does not exist, create it
             showmsg s "Creating zone '$zone_name'..."
-            firewall-cmd --permanent --new-zone="$zone_name" && \
-            firewall-cmd --permanent --zone="$zone_name" --set-target=DROP  && \
-            firewall-cmd --permanent --zone="$zone_name" --add-forward  && \
-            firewall-cmd --permanent --zone="$zone_name" --add-masquerade 
+            firewall-cmd --permanent --new-zone="$zone_name"            
         fi
+        firewall-cmd --permanent --zone="$zone_name" --set-target=DROP  && \
+        firewall-cmd --permanent --zone="$zone_name" --add-forward  && \
+        firewall-cmd --permanent --zone="$zone_name" --add-masquerade 
     done     
     showmsg s "Reloading firewall after creating zones"
     firewall-cmd --reload
@@ -661,11 +711,11 @@ start_gw() {
   manage_wireguard up
   showmsg "Setting up routing for tunnels"
   setting_up_routing_lan_secure_tunnel
-  setting_up_routing_wan_secure_tunnel 
+  setting_up_routing_wan_secure_tunnel   
   showmsg "Setting up firewall for gateway"
   create_fw_policy
   create_direct_fw_rules
-  add_default_route
+  add_default_route  
   showmsg "Current State of gateway"
   get_fw_details_debug
   check_system_details
@@ -677,7 +727,7 @@ reset_gw() {
   manage_wireguard down   
   reset_fw
   clear_ip_rules_and_flush_tables  
-  start_stop_networkmanager
+  start_stop_networkmanager  
 }
 # Debug 
 debug_gw() {
@@ -688,6 +738,7 @@ debug_gw() {
 }
 # Controller script
 control_script() {
+    help
     case "$1" in
         "1" | "2")   
             local user_input
@@ -720,7 +771,6 @@ control_script() {
             ;;
     esac
 }
-
 
 # Check if arguments were passed
 if [ "$#" -lt 1 ]; then    
