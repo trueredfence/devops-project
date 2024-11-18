@@ -1,95 +1,202 @@
-# :star2: Docker-CheatSheet :star2:
+# Docker Cheat Sheet
 
-A CheatSheet to get you started with docker 
+This cheat sheet provides common Docker commands for quick reference to manage containers, images, networks, and volumes.
 
-## Installation 
-```sh
- 
-  This is for Ubuntu
- 
-    - Install few packages which are required beforehand
+## Table of Contents
 
-    sudo apt install apt-transport-https ca-certificates curl software-properties-common
+- [Basic Commands](#basic-commands)
+- [Image Management](#image-management)
+- [Container Interaction](#container-interaction)
+- [Docker Compose](#docker-compose)
+- [Docker System Management](#docker-system-management)
+- [Docker Network Management](#docker-network-management)
+- [Docker Volume Management](#docker-volume-management)
 
-    - Add GPG key 
+## Basic Commands
 
-    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+- **Check Docker Version**
 
-    - Add Docker repository to apt sources
+  ```bash
+  docker --version
+  ```
 
-    sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu bionic stable"
+- **Run a Container**
 
-    - Update your existing list of packages
-    
-    sudo apt update
+  ```bash
+  docker run -d -p <host_port>:<container_port> --name <container_name> <image_name>
+  ```
 
-    - Install Docker-ce
+- **List Running Containers**
 
-    sudo apt install docker-ce
+  ```bash
+  docker ps
+  ```
 
-    - Start Docker Process
+- **List All Containers**
 
-    sudo systemctl status docker 
+  ```bash
+  docker ps -a
+  ```
 
-```
+- **Stop a Running Container**
 
+  ```bash
+  docker stop <container_id>
+  ```
 
-## Docker commands :whale2:
-```sh
+- **Remove a Container**
 
- * Check all docker containers
-   docker ps -a
+  ```bash
+  docker rm <container_id>
+  ```
 
- * Check all started docker containers
-   docker ps
+- **Remove All Stopped Containers**
+  ```bash
+  docker container prune
+  ```
+- **All container in docker**
+  ```bash
+  docker rm $(sudo docker ps -a -q)
+  ```
 
- * Start a stopped container
-   docker start <container-name>
+## Image Management
 
- * Stop a container
-   docker stop <container-name>
+- **List All Images**
 
- * Remove all containers
-   docker stop $(docker ps -a -q)
-   docker rm $(docker ps -a -q) 
+  ```bash
+  docker images
+  ```
 
- * Attach to a container
-   docker start <container-name>
-   docker attach <container-name>
+- **Remove an Image**
 
- * Run bash shell in container
-   docker container exec -it <container-name> bash
- 
- * Delete container forcefully
-   docker container rm -f <container-name>
+  ```bash
+  docker rmi <image_id>
+  ```
 
- * Download a new docker image
-   docker pull <image-name:version>
+- **Pull an Image from Docker Hub**
 
- * Docker Stats
-   docker stats
+  ```bash
+  docker pull <image_name>
+  ```
 
- * See all Docker images
-   docker images
+- **Build an Image from a Dockerfile**
+  ```bash
+  docker build -t <image_name> .
+  ```
+- **All images in docker**
+  ```bash
+  docker rmi $(sudo docker images -q)
+  ```
 
- * Delete an Image
-   docker rmi <image-name>
-  
- * Remove all images
-   docker image prune -a
+## Container Interaction
 
- * Remove unused images
-   docker image prune
+- **Access a Running Container’s Shell**
 
- * Check all the networks created by docker
-   docker network ls
- 
- * Create Image from base container
-   docker commit {base image} {new image name}
+  ```bash
+  docker exec -it <container_id> /bin/bash
+  ```
 
-```
+- **View Logs of a Container**
+
+  ```bash
+  docker logs <container_id>
+  ```
+
+- **Follow Logs Continuously**
+  ```bash
+  docker logs -f <container_id>
+  ```
+
+## Docker Compose
+
+- **Start Containers Defined in a `docker-compose.yml`**
+
+  ```bash
+  docker-compose up -d
+  ```
+
+- **Stop Containers Started by Compose**
+  ```bash
+  docker-compose down
+  ```
+
+## Docker System Management
+
+- **View System-Wide Docker Information**
+
+  ```bash
+  docker info
+  ```
+
+- **Clean Up Unused Data (Images, Containers, Volumes)**
+  ```bash
+  docker system prune
+  ```
+
+## Docker Network Management
+
+- **List Networks**
+
+  ```bash
+  docker network ls
+  ```
+
+- **Create a Network**
+
+  ```bash
+  docker network create <network_name>
+  ```
+
+- **Inspect a Network**
+
+  ```bash
+  docker network inspect <network_name>
+  ```
+
+- **Connect a Container to a Network**
+
+  ```bash
+  docker network connect <network_name> <container_name>
+  ```
+
+- **Disconnect a Container from a Network**
+  ```bash
+  docker network disconnect <network_name> <container_name>
+  ```
+
+## Docker Volume Management
+
+- **List Volumes**
+
+  ```bash
+  docker volume ls
+  ```
+
+- **Create a Volume**
+
+  ```bash
+  docker volume create <volume_name>
+  ```
+
+- **Inspect a Volume**
+
+  ```bash
+  docker volume inspect <volume_name>
+  ```
+
+- **Remove a Volume**
+
+  ```bash
+  docker volume rm <volume_name>
+  ```
+
+- **Remove All Unused Volumes**
+  ```bash
+  docker volume prune
+  ```
 
 ## Launching containers :computer:
+
 ```sh
 
  * Launch container from an image
@@ -101,7 +208,7 @@ A CheatSheet to get you started with docker
 
  * Launch container with specific port
    docker run -it -p <host-port>:<docker-port>  <image-name>
-   
+
  * Lauching an nginx container which runs on port 80
    docker pull nginx
    docker run -itd -p 80:80  --name webserver  nginx
@@ -113,14 +220,14 @@ A CheatSheet to get you started with docker
 
 ```
 
-
 ## Docker file :package:
+
 ```sh
 
  * Build a docker image using a Dockerfile
    docker build -t <image name you want to give>  <Dockerfile path>
 
- 
+
  * Push image to docker hub
    docker login  (Login to docker hub only needed once)
    docker tag <localsystem image name>   <username>/<preferred image name>
@@ -130,6 +237,7 @@ A CheatSheet to get you started with docker
 ```
 
 ## Install docker compose
+
 ```sh
 
  - Download the latest version of Docker Compose
@@ -137,8 +245,8 @@ A CheatSheet to get you started with docker
 
  - Change file permissions
    sudo chmod +x /usr/local/bin/docker-compose
- 
- - Linking 
+
+ - Linking
    sudo ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
 
  - Verify Installation
@@ -146,17 +254,17 @@ A CheatSheet to get you started with docker
 
 ```
 
-## Working with docker compose 
+## Working with docker compose
+
 ```sh
 
  - Launch containers using docker compose file
    docker-compose up
 
- - Launch in background 
+ - Launch in background
    docker-compose up -d
 
  - Check logs of docker compose
    docker-compose logs
 
 ```
-
