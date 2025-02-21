@@ -1,0 +1,40 @@
+# Local Volume of database and Logs for database with
+# phpmyadmin
+version: "3.1"
+networks:
+  application:
+    driver: bridge
+services:
+  database:
+    image: mysql:latest
+    container_name: "MYSQL DB"
+    restart: always
+    networks:
+      - application
+    ports:
+      - "3306:3306"
+    volumes:
+      # - ./config/initdb:/docker-entrypoint-initdb.d
+      - db-data:/var/lib/mysql
+      - log-data:/var/log/mysql
+    environment:
+      MYSQL_USER: tiger
+      MYSQL_PASSWORD: tiger
+      MYSQL_ROOT_PASSWORD: admin4680
+  phpmyadmin:
+    image: phpmyadmin
+    container_name: "PhpMyadmin"
+    restart: always
+    networks:
+      - application
+    ports:
+      - "8080:80"
+    environment:
+      PMA_HOST: database
+      PMA_PORT: 3306
+      # UPLOAD_LIMIT: ${UPLOAD_LIMIT}
+      # MEMORY_LIMIT: ${MEMORY_LIMIT}
+
+volumes:
+  db-data:
+  log-data:
