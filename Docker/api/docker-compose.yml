@@ -1,0 +1,45 @@
+networks:
+  mysql-pma_application:
+    external: true # Ensure this matches the actual network name
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: "./Dockerfile.slimnode"
+    container_name: node_app
+    ports:
+      - "3000:3000"
+    # as we have passed required variables via .env file
+    environment:
+      - DB_HOST=mysql-pma-database-1 # Use the correct MySQL container name
+      - DB_PORT=3306
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_NAME=${DB_NAME}
+    volumes:
+      - .:/usr/src/app
+    #   - /usr/src/app/node_modules
+    networks:
+      - mysql-pma_application # Make sure this matches the defined network above
+
+
+    # depends_on:
+    #   - database
+
+  # Remove or comment out the MySQL service if not needed
+  # db:
+  #   image: mysql:8
+  #   container_name: mysql_db
+  #   restart: always
+  #   environment:
+  #     MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+  #     MYSQL_DATABASE: ${DB_NAME}
+  #     MYSQL_USER: ${DB_USER}
+  #     MYSQL_PASSWORD: ${DB_PASSWORD}
+  #   ports:
+  #     - "3307:3306"
+  #   volumes:
+  #     - mysql_data:/var/lib/mysql"
+# volumes:
+#   mysql_data:

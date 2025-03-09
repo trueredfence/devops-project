@@ -1,0 +1,10 @@
+version: "3.9"
+services:
+  localsmtp:
+    build:
+      context: .
+      dockerfile: "./Dockerfile.mailhog"
+    container_name: "RedFence-SMTP"
+    ports:
+      - "8025:8025"
+      - "1025:1025"
