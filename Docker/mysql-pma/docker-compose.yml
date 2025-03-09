@@ -1,14 +1,11 @@
-# Local Volume of database and Logs for database with
-# phpmyadmin
-version: "3.1"
 networks:
   application:
     driver: bridge
 services:
   database:
     image: mysql:latest
-    container_name: "MYSQL DB"
-    restart: always
+    container_name: "mysqldb"
+    # restart: always
     networks:
       - application
     ports:
@@ -23,8 +20,8 @@ services:
       MYSQL_ROOT_PASSWORD: admin4680
   phpmyadmin:
     image: phpmyadmin
-    container_name: "PhpMyadmin"
-    restart: always
+    container_name: "PMA"
+    # restart: always
     networks:
       - application
     ports:
