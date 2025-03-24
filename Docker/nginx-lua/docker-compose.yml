@@ -1,0 +1,33 @@
+networks:
+  mysql-pma_application:
+    external: true
+
+services:
+  nginx-proxy:
+    image: openresty/openresty:latest
+    container_name: nginx-proxy
+    volumes:
+      - ./sites:/usr/local/openresty/sites
+      - ./nginx.conf:/usr/local/openresty/nginx/conf/nginx.conf:ro
+      - ./lua-scripts:/usr/local/openresty/lua-scripts:ro
+    ports:
+      - "80:80"
+    restart: always
+    networks:
+      - mysql-pma_application
+#   mysql-db:
+#     image: mysql:8
+#     container_name: mysql-db
+#     environment:
+#       MYSQL_ROOT_PASSWORD: rootpassword
+#       MYSQL_DATABASE: proxy_db
+#       MYSQL_USER: proxy_user
+#       MYSQL_PASSWORD: proxy_password
+#     volumes:
+#       - mysql-data:/var/lib/mysql
+#     ports:
+#       - "3306:3306"
+#     restart: always
+
+# volumes:
+#   mysql-data:
