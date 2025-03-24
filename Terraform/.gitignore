@@ -1,1 +1,9 @@
-/.terraform/
+# Ignore Terraform-related files
+.terraform/
+terraform.tfstate
+terraform.tfstate.backup
+*.tfstate
+*.tfstate.backup
+crash.log
+*.tfvars
+*.tfvars.json
