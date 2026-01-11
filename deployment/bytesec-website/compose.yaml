@@ -1,0 +1,57 @@
+name: bytesec-web
+
+networks:
+  web-proxy:
+    driver: bridge
+
+services:
+  # PRODUCTION SITE
+  bytesec-prod:
+    container_name: bytesec-prod
+    build:
+      context: .
+      dockerfile: ./config/nextjs/Dockerfile
+    restart: unless-stopped
+    expose:
+      - "3000"
+    networks:
+      - web-proxy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:3000/ || exit 1"]
+      interval: 15s
+
+  # UAT SITE
+  bytesec-uat:
+    container_name: bytesec-uat
+    build:
+      context: .
+      dockerfile: ./config/nextjs/Dockerfile
+    restart: unless-stopped
+    expose:
+      - "3000"
+    networks:
+      - web-proxy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:3000/ || exit 1"]
+      interval: 15s
+
+  # NGINX EDGE SERVER
+  nginx:
+    container_name: nginx-gateway
+    build:
+      context: .
+      dockerfile: ./config/nginx/Dockerfile
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./config/nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./config/cert:/etc/letsencrypt:ro
+    networks:
+      - web-proxy
+    depends_on:
+      bytesec-prod:
+        condition: service_healthy
+      bytesec-uat:
+        condition: service_healthy

@@ -1,0 +1,35 @@
+name: Deploy Redfence
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4 # Updated to v4 for security/performance
+
+      - name: Synchronize Files To Server
+        uses: easingthemes/ssh-deploy@v5.0.3 # Updated version
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.PRO_REMOTE_SSH_KEY }}
+          SOURCE: "./"
+          REMOTE_HOST: ${{ secrets.PRO_REMOTE_HOST }}
+          REMOTE_USER: ${{ secrets.PRO_REMOTE_USER }}
+          REMOTE_PORT: ${{ secrets.PRO_REMOTE_PORT }}
+          TARGET: "~/redfence"
+          EXCLUDE: "/.git/, /node_modules/, .env, .env.example"
+
+      - name: Execute Remote SSH Commands
+        uses: appleboy/ssh-action@v1.0.3 # Updated version
+        with:
+          host: ${{ secrets.PRO_REMOTE_HOST }}
+          username: ${{ secrets.PRO_REMOTE_USER }}
+          key: ${{ secrets.PRO_REMOTE_SSH_KEY }}
+          port: ${{ secrets.PRO_REMOTE_PORT }}
+          script: |
+            cd ~/redfence/deploy/bash && chmod +x initdeploy.sh && nohup ./initdeploy.sh

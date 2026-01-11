@@ -1,0 +1,153 @@
+# Standardized Compose Specification - 2026 
+# Project: Redfence Security Application
+name: redfence
+
+volumes:
+  redfence_storage:
+  postgres_data:
+
+networks:
+  frontend:
+    driver: bridge
+  backend:
+    driver: bridge
+
+services:
+  # -----------------------------------------------------------------------------
+  # DATABASE: Primary PostgreSQL Instance
+  # -----------------------------------------------------------------------------
+  postgres:
+    container_name: postgres
+    image: postgres:15-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_DATABASE}
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME} -d ${DB_DATABASE}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # -----------------------------------------------------------------------------
+  # CACHE: Redis for Session and Caching
+  # -----------------------------------------------------------------------------
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    restart: unless-stopped
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+
+  # -----------------------------------------------------------------------------
+  # MIGRATIONS: Automated Schema Updates
+  # Build context is now '.' to access all project files
+  # -----------------------------------------------------------------------------
+  migrate:
+    container_name: migrate
+    build:
+      context: .
+      dockerfile: ./config/nextjs/Dockerfile
+      target: migration_runner
+    image: redfence/migrate:latest
+    pull_policy: build
+    environment:
+      DATABASE_URL: postgres://${DB_USERNAME}:${DB_PASSWORD}@postgres:5432/${DB_DATABASE}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - backend
+    command: npx drizzle-kit migrate
+    restart: "no"
+
+  # -----------------------------------------------------------------------------
+  # APPLICATION: Next.js Standalone Runner
+  # -----------------------------------------------------------------------------
+  redfence:
+    container_name: redfence
+    build:
+      context: .
+      dockerfile: ./config/nextjs/Dockerfile
+      target: runner
+      args:
+        NEXT_PUBLIC_BETTER_AUTH_URL: ${NEXT_PUBLIC_BETTER_AUTH_URL}
+    image: redfence/app:latest
+    pull_policy: build
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    environment:
+      NODE_ENV: production
+      HOSTNAME: "0.0.0.0"
+      PORT: 3000
+      DATABASE_URL: postgres://${DB_USERNAME}:${DB_PASSWORD}@postgres:5432/${DB_DATABASE}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET}
+      BETTER_AUTH_URL: ${BETTER_AUTH_URL}
+      NEXT_PUBLIC_BETTER_AUTH_URL: ${NEXT_PUBLIC_BETTER_AUTH_URL}
+    volumes:
+      - "redfence_storage:/app/public/reports"
+    networks:
+      - frontend
+      - backend
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:3000/ || exit 1"]
+      interval: 10s
+      start_period: 60s
+
+  # -----------------------------------------------------------------------------
+  # PROXY: Nginx Edge Server
+  # -----------------------------------------------------------------------------
+  nginx:
+    container_name: nginx
+    build:
+      context: .
+      dockerfile: ./config/nginx/Dockerfile
+    image: redfence/nginx:latest
+    pull_policy: build
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - "./config/nginx/conf.d:/etc/nginx/conf.d:ro"
+      - "./config/cert:/etc/letsencrypt:ro"
+      - "redfence_storage:/app/public/reports:ro"
+    depends_on:
+      redfence:
+        condition: service_healthy
+    networks:
+      - frontend
+  # -----------------------------------------------------------------------------
+  # DATABASE MANAGEMENT: pgAdmin4
+  # -----------------------------------------------------------------------------
+  pgadmin:
+    container_name: pgadmin
+    image: dpage/pgadmin4:latest
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@redfence.com}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin@4680!}
+      # This allows pgAdmin to be served under a subpath like /pgadmin
+      PGADMIN_LISTEN_PORT: 80
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks: ["frontend", "backend"]
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"

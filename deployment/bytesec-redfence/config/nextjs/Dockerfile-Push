@@ -1,0 +1,89 @@
+# --------------------------------------------------------------------------------
+# Stage 0: Base Image
+# --------------------------------------------------------------------------------
+FROM node:20.10-alpine AS base
+# Install necessary packages for Next.js, including glibc (via libc6-compat)
+# and a shell for running commands.
+RUN apk add --no-cache libc6-compat bash
+RUN apk add --no-cache postgresql-client
+
+# --------------------------------------------------------------------------------
+# Stage 1: Dependency Installation (deps)
+# Only runs when package.json or lockfiles change.
+# --------------------------------------------------------------------------------
+FROM base AS deps
+WORKDIR /app
+
+# For client side env
+ARG NEXT_PUBLIC_BETTER_AUTH_URL
+ENV NEXT_PUBLIC_BETTER_AUTH_URL=$NEXT_PUBLIC_BETTER_AUTH_URL
+
+# Optimization: Only copy package.json and the expected lockfile.
+COPY package.json package-lock.json ./
+
+# Install dependencies strictly from lockfile
+RUN npm ci
+
+# --------------------------------------------------------------------------------
+# Stage 2: Build Application (builder)
+# Rebuilds the app if dependencies are cached.
+# --------------------------------------------------------------------------------
+FROM base AS builder
+WORKDIR /app
+
+COPY --from=deps /app/node_modules ./node_modules
+COPY . .
+
+# Disable telemetry during build for privacy/predictability
+ENV NEXT_TELEMETRY_DISABLED=1
+
+RUN npm run build
+
+# --------------------------------------------------------------------------------
+# Stage 3: Production Runner (runner)
+# This is the final, minimal image.
+# --------------------------------------------------------------------------------
+FROM base AS runner
+WORKDIR /app
+
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
+
+RUN addgroup --system --gid 1001 nodejs && \
+    adduser --system --uid 1001 nextjs
+
+# Copy public assets
+COPY --from=builder --chown=nextjs:nodejs /app/public ./public
+
+# Copy the standalone build (The core app)
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+
+# Copy Drizzle files for migrations
+COPY --from=builder --chown=nextjs:nodejs /app/src/db ./src/db
+COPY --from=builder --chown=nextjs:nodejs /app/drizzle ./drizzle
+COPY --from=builder --chown=nextjs:nodejs /app/drizzle.config.ts ./drizzle.config.ts
+
+# Utility scripts
+COPY --chown=nextjs:nodejs deploy/nextjs/entrypoint.sh ./entrypoint.sh
+RUN chmod +x ./entrypoint.sh
+
+# Copy node_modules for CLI tools like drizzle-kit (optional if bundled, but safer for migrations)
+# Note: copying *only* prod dependencies would be better, but 'deps' has everything.
+# Optimisation: If you want smaller image, run npm ci --only=production in a separate stage or here. 
+# For now, copying from deps to ensure compatibility as requested.
+COPY --from=deps --chown=nextjs:nodejs /app/node_modules ./node_modules
+
+# Create data directory with correct permissions
+RUN mkdir -p /app/data/uploads && chown -R nextjs:nodejs /app/data
+
+USER nextjs
+
+EXPOSE 3000
+ENV PORT=3000
+ENV HOSTNAME="0.0.0.0"
+
+ENTRYPOINT ["./entrypoint.sh"]
+CMD ["node", "server.js"]
+
+

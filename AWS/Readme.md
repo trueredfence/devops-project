@@ -25,5 +25,28 @@ aws ec2 describe-instances `
 aws ec2 describe-addresses `
     --query "Addresses[*].{Name:Tags[?Key=='Name']|[0].Value, IP:PublicIp, AllocationID:AllocationId, Instance:InstanceId}" `
     --output table
+
+aws ec2 describe-instance-type-offerings `
+  --region ap-south-1 `
+  --filters "Name=instance-type,Values=t3a.small" `
+  --output text        
+
+aws ec2 describe-images `
+  --region ap-south-1 `
+  --owners amazon `
+  --query "Images[*].[ImageId,Name,CreationDate]" `
+  --filters "Name=architecture,Values=x86_64" `
+  --output text
+
+
+aws ec2 describe-images `
+    --region ap-south-1 `
+    --owners 099720109477 `
+    --filters "Name=name,Values=ubuntu/images/hvm-ssd-gp3/ubuntu-noble-24.04-amd64-server-*" `
+    "Name=state,Values=available" `
+    --query 'sort_by(Images, &CreationDate)[-1].ImageId' `
+    --output text
+
+
     
 ```

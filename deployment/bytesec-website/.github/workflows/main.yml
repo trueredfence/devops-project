@@ -1,0 +1,33 @@
+name: Deploy Bytesec
+
+on:
+  push:
+    branches: [main, uat]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Sync Files to Server
+        uses: easingthemes/ssh-deploy@v5.0.3
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          REMOTE_HOST: ${{ secrets.SERVER_IP }}
+          REMOTE_USER: ${{ secrets.SERVER_USER }}
+          TARGET: "~/bytesec"
+          EXCLUDE: "/.git/, /node_modules/"
+
+      - name: Execute Remote Deployment
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_IP }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd ~/bytesec
+            chmod +x deploy.sh
+            # Pass the branch name (main or uat) to the script
+            ./deploy.sh ${{ github.ref_name }}
