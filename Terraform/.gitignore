@@ -1,37 +1,54 @@
-# Local .terraform directories
+# ==========================================
+# Terraform / OpenTofu Professional .gitignore
+# ==========================================
+
+# 1. Local .terraform directories
+# Contains providers, modules, and transient data.
 **/.terraform/*
 
-# .tfstate files
+# 2. State files
+# These contain sensitive infrastructure data and should NEVER be in Git.
+# Use a remote backend (S3/GCS/Azure) instead.
 *.tfstate
 *.tfstate.*
 
-# Crash log files
+# 3. Crash log files
 crash.log
 crash.*.log
 
-# Exclude all .tfvars files, which are likely to contain sensitive data, such as
-# password, private keys, and other secrets. These should not be part of version 
-# control as they are data points which are potentially sensitive and subject 
-# to change depending on the environment.
+# 4. Variables and Secrets
+# Exclude all .tfvars files as they likely contain sensitive data.
 *.tfvars
 *.tfvars.json
 
-# Ignore override files as they are usually used to override resources locally and so
-# are not checked in
+# 5. Override files
+# Used for local adjustments; should not be committed.
 override.tf
 override.tf.json
 *_override.tf
 *_override.tf.json
 
-# Ignore transient lock info files created by terraform apply
+# 6. Plan files
+# Binary plan files can be large and are environment-specific.
+*.tfplan
+
+# 7. Lock files
+# NOTE: .terraform.lock.hcl is usually COMMITTED to version control to 
+# ensure consistent provider versions across environments.
+# Uncomment the line below ONLY if you explicitly want to ignore it.
+# .terraform.lock.hcl
+
+# 8. Transient lock info files
 .terraform.tfstate.lock.info
 
-# Include override files you do wish to add to version control using negated pattern
-# !example_override.tf
-
-# Include tfplan files to ignore the plan output of command: terraform plan -out=tfplan
-# example: *tfplan*
-
-# Ignore CLI configuration files
+# 9. CLI configuration files
 .terraformrc
 terraform.rc
+
+# 10. OS/Editor Junk
+.DS_Store
+Thumbs.db
+*.swp
+*.bak
+.idea/
+.vscode/
