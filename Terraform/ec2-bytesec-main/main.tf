@@ -10,9 +10,9 @@ variable "is_password" {
 variable "instance_config" {
   type = map(string)
   default = {
-    ami           = "ami-019715e0d74f695be"
+    ami           = "ami-02b8269d5e85954ef"
     instance_type = "t3a.small"
-    hdd_size_gb   = "10"
+    hdd_size_gb   = "20"
     username      = "ubuntu"
     instance_name = "bytesec-main"
   }
