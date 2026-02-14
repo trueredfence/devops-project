@@ -3,7 +3,7 @@
 # ==========================================
 variable "is_password" {
   type        = bool
-  default     = false # Set to TRUE for Password, FALSE for SSH Key
+  default     = false
   description = "If true, uses password auth. If false, generates and uses SSH key."
 }
 
@@ -13,7 +13,7 @@ variable "instance_config" {
     instance_type = "t3a.medium"
     hdd_size_gb   = "20"
     username      = "ubuntu"
-    instance_name = "bytesec-redfence-prod"
+    instance_name = "bytesec-redfence-uat"
   }
 }
 
@@ -23,7 +23,7 @@ variable "s3_config" {
     force_destroy = bool
   })
   default = {
-    bucket_name   = "bytesec-redfence-prod"
+    bucket_name   = "bytesec-redfence-uat"
     force_destroy = true
   }
 }
@@ -37,10 +37,9 @@ variable "database_config" {
     allocated_storage = number
   })
   default = {
-    create_db = true
-    db_name   = "appdb"
-    username  = "dbadmin"
-    # password          = "ChangeMe123!" # Now using random_password resource
+    create_db         = false
+    db_name           = "appdb"
+    username          = "dbadmin"
     instance_class    = "db.t3.micro"
     allocated_storage = 20
   }
@@ -75,11 +74,11 @@ terraform {
 
 provider "aws" { region = "ap-south-1" }
 
-# ==========================================
-# 3. CONDITIONAL RESOURCES (Keys)
-# ==========================================
+data "aws_caller_identity" "current" {}
 
-# Only generates a key if is_password is FALSE
+# ==========================================
+# 3. AUTHENTICATION RESOURCES
+# ==========================================
 resource "tls_private_key" "generated_key" {
   count     = var.is_password ? 0 : 1
   algorithm = "RSA"
@@ -99,7 +98,6 @@ resource "local_file" "ssh_key" {
   file_permission = "0400"
 }
 
-# Generate Random Password (Always generated, but only used if is_password is true)
 resource "random_password" "user_pass" {
   length           = 16
   special          = true
@@ -107,7 +105,7 @@ resource "random_password" "user_pass" {
 }
 
 # ==========================================
-# 4. EC2 INSTANCE
+# 4. EC2 INSTANCE & NETWORKING
 # ==========================================
 data "aws_ec2_instance_type" "specs" {
   instance_type = var.instance_config["instance_type"]
@@ -116,9 +114,8 @@ data "aws_ec2_instance_type" "specs" {
 resource "aws_instance" "my_ec2" {
   ami                  = "ami-02521d90e7410d9f0"
   instance_type        = var.instance_config["instance_type"]
-  iam_instance_profile = aws_iam_instance_profile.ec2_profile.name # Attach IAM Role
+  iam_instance_profile = aws_iam_instance_profile.ec2_profile.name
 
-  # Only attaches a key_name if is_password is FALSE
   key_name = var.is_password ? null : aws_key_pair.deployer_key[0].key_name
 
   subnet_id              = var.network_config["subnet_id"]
@@ -131,59 +128,57 @@ resource "aws_instance" "my_ec2" {
 
   user_data = <<-EOF
               #!/bin/bash
-              apt-get update -y 
-              apt-get upgrade -y
+              apt-get update -y && apt-get upgrade -y
+
               %{if var.is_password}
               useradd -m -s /bin/bash ${var.instance_config["username"]}
               echo "${var.instance_config["username"]}:${random_password.user_pass.result}" | chpasswd
               echo "${var.instance_config["username"]} ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/${var.instance_config["username"]}
               
-              # Conditional SSH configuration script
-              
               sed -i 's/^Include /#Include /' /etc/ssh/sshd_config
-              if grep -q "^PasswordAuthentication" /etc/ssh/sshd_config; then
-                  sed -i 's/^PasswordAuthentication.*/PasswordAuthentication yes/' /etc/ssh/sshd_config
-              else
-                  echo "PasswordAuthentication yes" >> /etc/ssh/sshd_config
-              fi
+              sed -i 's/^#\?PasswordAuthentication.*/PasswordAuthentication yes/' /etc/ssh/sshd_config
+              sed -i 's/^#\?PermitRootLogin.*/PermitRootLogin no/' /etc/ssh/sshd_config
               systemctl restart ssh
               %{endif}
-              apt-get install -y \
-                ca-certificates \
-                curl \
-                gnupg \
-                lsb-release \
-                git \
-                unzip
 
-              # Install Docker
+              apt-get install -y ca-certificates fail2ban curl gnupg lsb-release git unzip dos2unix
+              
+              # Kali Terminal Installation
+              sudo bash -c "$(curl -H 'Cache-Control: no-cache, no-store' https://raw.githubusercontent.com/trueredfence/kali-linux-terminal/refs/heads/main/install.sh)"
+
+              cat <<EOT > /etc/fail2ban/jail.d/sshd.conf
+              [sshd]
+              enabled = true
+              port    = ssh
+              filter  = sshd
+              logpath = /var/log/auth.log
+              maxretry = 5
+              bantime  = 1h
+              findtime = 10m
+              EOT
+
+              systemctl enable fail2ban && systemctl restart fail2ban
+
               mkdir -p /etc/apt/keyrings
               curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
-              echo \
-                "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
-                $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
+              echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
 
               apt-get update
               apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
 
-              # Install AWS CLI v2
               curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-              unzip awscliv2.zip
-              ./aws/install
+              unzip awscliv2.zip && ./aws/install
 
-              # Create app directory
               mkdir -p /opt/app
-
-              # Set permissions
               usermod -aG docker ${var.instance_config["username"]}
-              printf '{
+
+              cat <<EOT > /etc/docker/daemon.json
+              {
                 "log-driver": "json-file",
-                "log-opts": {
-                  "max-size": "10m",
-                  "max-file": "3"
-                }
-              }\n' | sudo tee /etc/docker/daemon.json > /dev/null
-              systemctl restart docker             
+                "log-opts": { "max-size": "10m", "max-file": "3" }
+              }
+              EOT
+              systemctl restart docker 
               EOF
 
   tags = { Name = var.instance_config["instance_name"] }
@@ -197,75 +192,97 @@ resource "aws_eip_association" "eip_assoc" {
 }
 
 # ==========================================
-# IAM Role for S3 Access
+# 5. VPC GATEWAY ENDPOINT FOR S3
 # ==========================================
+data "aws_vpc_endpoint_service" "s3" {
+  service      = "s3"
+  service_type = "Gateway"
+}
 
-# 1. Create IAM Role
+data "aws_route_table" "selected" {
+  subnet_id = var.network_config["subnet_id"]
+}
+
+resource "aws_vpc_endpoint" "s3_gateway" {
+  vpc_id       = var.network_config["vpc_id"]
+  service_name = data.aws_vpc_endpoint_service.s3.service_name
+
+  # Automatically add S3 private route to your existing subnet route table
+  route_table_ids = [data.aws_route_table.selected.id]
+
+  tags = { Name = "${var.instance_config["instance_name"]}-s3-endpoint" }
+}
+
+# ==========================================
+# 6. IAM ROLES & DYNAMIC POLICIES
+# ==========================================
 resource "aws_iam_role" "ec2_s3_access_role" {
   name = "${var.instance_config["instance_name"]}-s3-role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
-    Statement = [
-      {
-        Action = "sts:AssumeRole"
-        Effect = "Allow"
-        Principal = {
-          Service = "ec2.amazonaws.com"
-        }
-      }
-    ]
+    Statement = [{
+      Action    = "sts:AssumeRole"
+      Effect    = "Allow"
+      Principal = { Service = "ec2.amazonaws.com" }
+    }]
   })
 }
 
-# 2. Create Permission Policy (Updated for RDS)
 resource "aws_iam_policy" "s3_app_backup_policy" {
   name        = "${var.instance_config["instance_name"]}-policy"
   description = "Allow EC2 instance to access S3 bucket and RDS"
 
   policy = jsonencode({
     Version = "2012-10-17"
-    Statement = [
-      {
-        Sid    = "S3Access"
-        Effect = "Allow"
-        Action = [
-          "s3:PutObject",
-          "s3:GetObject",
-          "s3:ListBucket"
-        ]
-        Resource = [
-          aws_s3_bucket.static_assets.arn,
-          "${aws_s3_bucket.static_assets.arn}/*"
-        ]
-      },
-      {
-        Sid    = "RDSIAMAuth"
-        Effect = "Allow"
-        Action = [
-          "rds-db:connect"
-        ]
-        Resource = [
-          "arn:aws:rds-db:ap-south-1:${data.aws_caller_identity.current.account_id}:dbuser:${aws_db_instance.postgres[0].resource_id}/${var.database_config["username"]}"
-        ]
-      }
-    ]
+    Statement = concat(
+      [
+        {
+          Sid    = "S3Access"
+          Effect = "Allow"
+          Action = ["s3:PutObject", "s3:GetObject", "s3:ListBucket"]
+          Resource = [
+            aws_s3_bucket.static_assets.arn,
+            "${aws_s3_bucket.static_assets.arn}/*"
+          ]
+        }
+      ],
+      var.database_config["create_db"] ? [
+        {
+          Sid    = "RDSIAMAuth"
+          Effect = "Allow"
+          Action = ["rds-db:connect"]
+          Resource = [
+            "arn:aws:rds-db:ap-south-1:${data.aws_caller_identity.current.account_id}:dbuser:${one(aws_db_instance.postgres[*].resource_id)}/${var.database_config["username"]}"
+          ]
+        }
+      ] : []
+    )
   })
 }
 
-# ==========================================
-# Database (PostgreSQL)
-# ==========================================
+resource "aws_iam_role_policy_attachment" "s3_access_attach" {
+  role       = aws_iam_role.ec2_s3_access_role.name
+  policy_arn = aws_iam_policy.s3_app_backup_policy.arn
+}
 
+resource "aws_iam_instance_profile" "ec2_profile" {
+  name = "${var.instance_config["instance_name"]}-profile"
+  role = aws_iam_role.ec2_s3_access_role.name
+}
+
+# ==========================================
+# 7. DATABASE (POSTGRESQL)
+# ==========================================
 resource "random_password" "db_pass" {
-  count            = var.database_config["create_db"] == true ? 1 : 0
+  count            = var.database_config["create_db"] ? 1 : 0
   length           = 16
   special          = true
   override_special = "!#$%&*()-_=+[]{}<>:?"
 }
 
 resource "aws_db_instance" "postgres" {
-  count                               = var.database_config["create_db"] == true ? 1 : 0
+  count                               = var.database_config["create_db"] ? 1 : 0
   allocated_storage                   = var.database_config["allocated_storage"]
   engine                              = "postgres"
   engine_version                      = "16.1"
@@ -280,64 +297,43 @@ resource "aws_db_instance" "postgres" {
   db_subnet_group_name                = aws_db_subnet_group.default[0].name
   iam_database_authentication_enabled = true
 
-  tags = {
-    Name = "${var.instance_config["instance_name"]}-db"
-  }
+  tags = { Name = "${var.instance_config["instance_name"]}-db" }
 }
 
 resource "aws_security_group" "rds_sg" {
-  count       = var.database_config["create_db"] == true ? 1 : 0
-  name        = "${var.instance_config["instance_name"]}-rds-sg"
-  description = "Allow inbound traffic from EC2"
-  vpc_id      = var.network_config["vpc_id"]
+  count  = var.database_config["create_db"] ? 1 : 0
+  name   = "${var.instance_config["instance_name"]}-rds-sg"
+  vpc_id = var.network_config["vpc_id"]
 
   ingress {
     from_port       = 5432
     to_port         = 5432
     protocol        = "tcp"
-    security_groups = [var.network_config["sg_id"]] # Allow access from EC2 SG
+    security_groups = [var.network_config["sg_id"]]
   }
 }
 
 resource "aws_db_subnet_group" "default" {
-  count      = var.database_config["create_db"] == true ? 1 : 0
+  count      = var.database_config["create_db"] ? 1 : 0
   name       = "${var.instance_config["instance_name"]}-subnet-group"
   subnet_ids = [var.network_config["subnet_id"], var.network_config["subnet_id_2"]]
 }
 
-# Helper data source for account ID
-data "aws_caller_identity" "current" {}
-
-# 3. Attach Policy to Role
-resource "aws_iam_role_policy_attachment" "s3_access_attach" {
-  role       = aws_iam_role.ec2_s3_access_role.name
-  policy_arn = aws_iam_policy.s3_app_backup_policy.arn
-}
-
-# 4. Create Instance Profile
-resource "aws_iam_instance_profile" "ec2_profile" {
-  name = "${var.instance_config["instance_name"]}-profile"
-  role = aws_iam_role.ec2_s3_access_role.name
-}
-
 # ==========================================
-# S3 Bucket
+# 8. S3 BUCKET
 # ==========================================
-resource "aws_s3_bucket" "static_assets" {
-  bucket        = "${var.s3_config["bucket_name"]}-${random_id.bucket_id.hex}"
-  force_destroy = var.s3_config["force_destroy"]
-
-  tags = {
-    Name = var.s3_config["bucket_name"]
-  }
-}
-
 resource "random_id" "bucket_id" {
   byte_length = 8
 }
 
+resource "aws_s3_bucket" "static_assets" {
+  bucket        = "${var.s3_config["bucket_name"]}-${random_id.bucket_id.hex}"
+  force_destroy = var.s3_config["force_destroy"]
+  tags          = { Name = var.s3_config["bucket_name"] }
+}
+
 # ==========================================
-# 5. DYNAMIC OUTPUTS
+# 9. OUTPUTS
 # ==========================================
 output "instance_summary" {
   sensitive = true
@@ -345,23 +341,16 @@ output "instance_summary" {
     auth_method = var.is_password ? "Password" : "SSH Key"
     public_ip   = aws_eip.my_eip.public_ip
     username    = var.instance_config["username"]
+    password    = var.is_password ? random_password.user_pass.result : "N/A (Key Auth)"
+    ssh_command = var.is_password ? "ssh ${var.instance_config["username"]}@${aws_eip.my_eip.public_ip}" : "ssh -i ${one(aws_key_pair.deployer_key[*].key_name)}.pem ${var.instance_config["username"]}@${aws_eip.my_eip.public_ip}"
 
-    # Only show password if it's the chosen auth method
-    password = var.is_password ? random_password.user_pass.result : "N/A (Key Auth)"
-
-    # Build SSH command based on auth type
-    ssh_command = var.is_password ? "ssh ${var.instance_config["username"]}@${aws_eip.my_eip.public_ip}" : "ssh -i ${aws_key_pair.deployer_key[0].key_name}.pem ${var.instance_config["username"]}@${aws_eip.my_eip.public_ip}"
-
-    hardware_details = {
-      vcpus   = data.aws_ec2_instance_type.specs.default_vcpus
-      ram_mib = data.aws_ec2_instance_type.specs.memory_size
-      storage = "${var.instance_config["hdd_size_gb"]} GB"
-    }
-
-    database_details = var.database_config["create_db"] == true ? {
+    database = var.database_config["create_db"] ? {
       endpoint = aws_db_instance.postgres[0].endpoint
       username = var.database_config["username"]
       password = random_password.db_pass[0].result
     } : null
+
+    s3_bucket   = aws_s3_bucket.static_assets.id
+    s3_endpoint = aws_vpc_endpoint.s3_gateway.id
   }
 }
